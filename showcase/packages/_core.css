@@ -1,0 +1,151 @@
+:root{
+  --bg:#0a0b0d; --bg2:#0e1013;
+  --surface:#131519; --surface2:#181b21;
+  --line:#262a32; --line-bright:#373d48;
+  --text:#e9eaed; --text-dim:#9aa0ab; --text-faint:#5c626d;
+  --red:#c0171f; --teal:#46b8a5; --amber:#d9933d;
+  --font:'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --cond:'Barlow Condensed',var(--font);
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --cn-font:'LXGW WenKai','LXGW WenKai Screen','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans SC',sans-serif;
+  --display:var(--font);            /* heading font — themes override (serif, grotesk, …) */
+  --r:10px;                         /* card corner radius — themes vary sharp↔round */
+  /* themeable surfaces (light themes override these) */
+  --topbar-bg:rgba(10,11,13,.82);
+  --bg-glow:rgba(70,184,165,.05);
+  --stage-bg:var(--bg2);
+  --stage-img:radial-gradient(circle, rgba(255,255,255,.022) 1px, transparent 1px);
+  --stage-size:13px 13px;
+  --card-border:var(--line);
+  --accent:var(--teal);             /* scheme accent (theme switcher sets this) */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{
+  background:var(--bg); color:var(--text); font-family:var(--font);
+  line-height:1.5; min-height:100vh;
+  background-image:radial-gradient(circle at 50% -10%, var(--bg-glow), transparent 55%);
+}
+::selection{background:rgba(70,184,165,.3)}
+
+/* ---- top bar ---- */
+.topbar{
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 22px; height:48px;
+  background:var(--topbar-bg); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.brand{font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; display:flex; align-items:center; gap:9px; color:var(--text-dim); min-width:0; overflow:hidden; white-space:nowrap; flex-shrink:1}
+.brand b{color:var(--text); font-weight:700}
+.brand .dot{width:7px; height:7px; border-radius:50%; flex:none; background:var(--accent); box-shadow:0 0 8px var(--accent); animation:blink 2.6s ease-in-out infinite}
+.topbar .right{flex-shrink:0}
+/* scheme picker — each button is a little palette bar of that scheme's colours */
+.schemePick{display:flex; gap:6px; align-items:center; margin-right:1px}
+.schemeBtn{width:30px; height:15px; padding:0; border-radius:4px; background:var(--sw,#888); border:1.5px solid transparent; cursor:pointer; transition:.15s; box-shadow:0 0 0 1px var(--line)}
+.schemeBtn:hover{transform:translateY(-1px) scale(1.05)}
+.schemeBtn.on{border-color:var(--text); box-shadow:0 0 0 1px var(--bg)}
+.brand .sep{color:var(--text-faint)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.btn{
+  font-family:var(--mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase;
+  background:var(--surface); color:var(--text-dim); border:1px solid var(--line);
+  padding:7px 13px; border-radius:7px; cursor:pointer; transition:.16s;
+}
+.btn:hover{border-color:var(--teal); color:var(--text); background:var(--surface2)}
+.btn:active{transform:translateY(1px)}
+.topbar .right{display:flex; align-items:center; gap:8px}
+
+/* ---- EN / CN language toggle ---- */
+.langToggle{display:flex; align-items:center; gap:5px}
+.langToggle .l-cn{font-family:var(--cn-font); font-size:12px; letter-spacing:0}
+.langToggle .l-sep{color:var(--text-faint)}
+.t-cn{font-family:var(--cn-font)}
+body.lang-en .t-cn{display:none}
+body.lang-cn .t-en{display:none}
+body.lang-en .cat-cn{display:none}            /* category CN desc only in CN mode */
+.cat-cn{font-family:var(--cn-font)}
+body.lang-cn .langToggle .l-en{color:var(--text-faint); font-weight:400}
+body.lang-cn .langToggle .l-cn{color:var(--text); font-weight:700}
+body.lang-en .langToggle .l-cn{color:var(--text-faint); font-weight:400}
+body.lang-en .langToggle .l-en{color:var(--text); font-weight:700}
+
+/* ---- hero ---- */
+.wrap{max-width:1280px; margin:0 auto; padding:0 22px}
+.hero{padding:64px 0 48px; max-width:880px}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--teal); margin-bottom:18px}
+.hero h1{font-family:var(--display); font-size:clamp(38px,7vw,68px); font-weight:700; letter-spacing:-.02em; line-height:.98; margin-bottom:20px}
+.hero h1 .x{color:var(--text-faint); font-weight:500; margin:0 .12em}
+.lede{font-size:17px; color:var(--text-dim); max-width:660px}
+.lede .cn{display:block; margin-top:4px; font-size:15px; color:var(--text-faint)}
+.keys{display:flex; gap:18px; margin-top:30px; flex-wrap:wrap}
+.key{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; color:var(--text-faint)}
+.key .sw{width:12px; height:12px; border-radius:3px}
+
+/* ---- section ---- */
+.section{padding:34px 0 12px; border-top:1px solid var(--line); margin-top:48px}
+.sec-head{display:flex; align-items:baseline; gap:16px; margin-bottom:8px; flex-wrap:wrap}
+.sec-no{font-family:var(--mono); font-size:13px; color:var(--text-faint); letter-spacing:.1em}
+.sec-head h2{font-family:var(--display); font-size:26px; font-weight:600; letter-spacing:-.01em}
+.sec-head h2 .cn{font-size:16px; color:var(--text-dim); font-weight:400; margin-left:10px}
+.sec-desc{color:var(--text-dim); font-size:15px; max-width:760px; margin-bottom:30px}
+
+/* ---- category band ---- */
+.cat{margin:32px 0 14px; display:flex; align-items:center; gap:12px}
+.cat-label{font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--text); white-space:nowrap}
+.cat-cn{font-size:12px; color:var(--text-faint); font-family:var(--font)}
+.cat-rule{flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent)}
+
+/* ---- grid + cards ---- */
+.grid{display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(252px,1fr))}
+.grid.wide{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+.card{
+  display:flex; flex-direction:column; text-align:left;
+  background:var(--surface); border:1px solid var(--card-border); border-radius:var(--r);
+  overflow:hidden; cursor:pointer; font-family:inherit; color:inherit;
+  transition:border-color .18s, transform .18s;
+}
+.card:hover{border-color:var(--line-bright); transform:translateY(-2px)}
+.card:focus-visible{outline:2px solid var(--teal); outline-offset:2px}
+.stage{
+  position:relative; height:174px; padding:14px;
+  display:flex; align-items:center; justify-content:center;
+  background-color:var(--stage-bg);
+  background-image:var(--stage-img);
+  background-size:var(--stage-size);
+}
+.stage.tall{height:210px}
+.stage svg{display:block; width:100%; height:100%; overflow:visible}
+.replay{
+  position:absolute; top:9px; right:10px;
+  font-family:var(--mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--text-faint); opacity:0; transition:opacity .18s; pointer-events:none;
+  display:flex; align-items:center; gap:4px;
+}
+.card:hover .replay{opacity:1}
+.foot{border-top:1px solid var(--line); padding:11px 14px 13px; background:var(--surface2); display:flex; flex-direction:column; gap:6px}
+.name{font-weight:600; font-size:15px; letter-spacing:.005em; display:flex; align-items:baseline; gap:7px; flex-wrap:wrap}
+.name .cn{font-size:12px; color:var(--text-dim); font-weight:500}
+.meta{font-family:var(--mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--text-faint); display:flex; align-items:center; gap:7px}
+.meta .pip{width:5px; height:5px; border-radius:50%; flex:none}
+.use{font-size:12.5px; color:var(--text-dim); line-height:1.46}
+.data{font-size:11px; line-height:1.45; color:var(--text-dim); border-top:1px dashed var(--line); padding-top:7px; margin-top:1px; display:flex; flex-wrap:wrap; gap:4px 6px; align-items:baseline}
+.data-k{font-family:var(--mono); font-size:9px; letter-spacing:.06em; text-transform:uppercase; color:var(--teal); flex:none}
+.data .t-cn{font-family:var(--cn-font)}
+
+footer{padding:60px 0 80px; margin-top:56px; border-top:1px solid var(--line); color:var(--text-faint); font-family:var(--mono); font-size:12px; letter-spacing:.03em}
+footer .wrap{display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px}
+a{color:var(--teal); text-decoration:none}
+
+@media (max-width:560px){
+  .hero{padding:44px 0 32px}
+  .grid{grid-template-columns:1fr 1fr; gap:10px}
+  .stage{height:150px}
+}
+/* ?solo figure-capture mode: show only the matched cards, no chrome */
+body.solo .topbar, body.solo .hero, body.solo footer, body.solo .sec-head, body.solo .cat, body.solo .section-label{display:none}
+body.solo .section{padding:14px 0 0;margin-top:0;border:none}
+body.solo .wrap{padding:0 14px}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important}
+}

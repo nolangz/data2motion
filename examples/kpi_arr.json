@@ -1,0 +1,12 @@
+{
+  "chart": "kpi",
+  "title": "Annual recurring revenue crossed $4.2M",
+  "takeaway": "ARR has grown 14x in four years, compounding faster every quarter.",
+  "source": "Company financials — FY2026",
+  "unit": "",
+  "value_format": "0.0",
+  "duration": 1800,
+  "value": 4.2,
+  "kpi_label": "$M annual recurring revenue",
+  "sparkline": [0.3, 0.6, 0.9, 1.4, 2.0, 2.7, 3.3, 4.2]
+}

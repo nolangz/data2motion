@@ -1,0 +1,23 @@
+# OS / editor cruft
+.DS_Store
+._*
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# build / QA temp
+_qa/
+*.bak
+e*.txt
+*.tmp
+
+# packaging
+*.zip
+node_modules/

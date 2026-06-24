@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Essential — Charts × Motion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont/style.css">
+<style>
+:root{
+  --bg:#0a0b0d; --bg2:#0e1013;
+  --surface:#131519; --surface2:#181b21;
+  --line:#262a32; --line-bright:#373d48;
+  --text:#e9eaed; --text-dim:#9aa0ab; --text-faint:#5c626d;
+  --red:#c0171f; --teal:#46b8a5; --amber:#d9933d;
+  --font:'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --cond:'Barlow Condensed',var(--font);
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --cn-font:'LXGW WenKai','LXGW WenKai Screen','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans SC',sans-serif;
+  --r:10px;
+}
+/* EN / CN toggle */
+.langToggle{display:flex;align-items:center;gap:5px}
+.langToggle .l-sep{color:var(--text-faint)}
+.t-cn{font-family:var(--cn-font)}
+body.lang-en .t-cn{display:none}
+body.lang-cn .t-en{display:none}
+body.lang-en .cat-cn{display:none}
+body.lang-cn .langToggle .l-en{color:var(--text-faint);font-weight:400}
+body.lang-cn .langToggle .l-cn{color:var(--text);font-weight:700}
+body.lang-en .langToggle .l-cn{color:var(--text-faint);font-weight:400}
+body.lang-en .langToggle .l-en{color:var(--text);font-weight:700}
+/* ---- light mode ---- */
+body.light{
+  --bg:#fbfbf8; --bg2:#ffffff; --surface:#ffffff; --surface2:#f4f5f2;
+  --line:#e6e7e2; --line-bright:#cdcfc8;
+  --text:#16181d; --text-dim:#545a63; --text-faint:#8a8f99;
+  background-image:radial-gradient(circle at 50% -10%, rgba(70,184,165,.05), transparent 55%);
+}
+body.light .topbar{background:rgba(251,251,248,.86)}
+body.light .stage{background-color:#fbfcf8;background-image:radial-gradient(circle, rgba(0,0,0,.045) 1px, transparent 1px)}
+.schemePick{display:flex;gap:6px;align-items:center}
+.schemeBtn{width:30px;height:15px;padding:0;border-radius:4px;background:var(--sw,#888);border:1.5px solid transparent;cursor:pointer;transition:.15s;box-shadow:0 0 0 1px var(--line)}
+.schemeBtn:hover{transform:translateY(-1px) scale(1.05)}
+.schemeBtn.on{border-color:var(--text);box-shadow:0 0 0 1px var(--bg)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{
+  background:var(--bg); color:var(--text); font-family:var(--font);
+  line-height:1.5; min-height:100vh;
+  background-image:radial-gradient(circle at 50% -10%, rgba(70,184,165,.05), transparent 55%);
+}
+::selection{background:rgba(70,184,165,.3)}
+
+/* ---- top bar ---- */
+.topbar{
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 22px; height:48px;
+  background:rgba(10,11,13,.82); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.brand{font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; display:flex; align-items:center; gap:9px; color:var(--text-dim); min-width:0; overflow:hidden; white-space:nowrap; flex-shrink:1}
+.brand b{color:var(--text); font-weight:700}
+.brand .dot{width:7px; height:7px; border-radius:50%; background:var(--teal); box-shadow:0 0 8px var(--teal); animation:blink 2.6s ease-in-out infinite}
+.brand .sep{color:var(--text-faint)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.btn{
+  font-family:var(--mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase;
+  background:var(--surface); color:var(--text-dim); border:1px solid var(--line);
+  padding:7px 13px; border-radius:7px; cursor:pointer; transition:.16s;
+}
+.btn:hover{border-color:var(--teal); color:var(--text); background:var(--surface2)}
+.btn:active{transform:translateY(1px)}
+
+/* ---- hero ---- */
+.wrap{max-width:1280px; margin:0 auto; padding:0 22px}
+.hero{padding:64px 0 48px; max-width:820px}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--teal); margin-bottom:18px}
+.hero h1{font-size:clamp(38px,7vw,68px); font-weight:700; letter-spacing:-.02em; line-height:.98; margin-bottom:20px}
+.hero h1 .x{color:var(--text-faint); font-weight:500; margin:0 .12em}
+.lede{font-size:17px; color:var(--text-dim); max-width:620px}
+.lede .cn{display:block; margin-top:4px; font-size:15px; color:var(--text-faint)}
+.keys{display:flex; gap:18px; margin-top:30px; flex-wrap:wrap}
+.key{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; color:var(--text-faint)}
+.key .sw{width:12px; height:12px; border-radius:3px}
+
+/* ---- section ---- */
+.section{padding:34px 0 12px; border-top:1px solid var(--line); margin-top:48px}
+.sec-head{display:flex; align-items:baseline; gap:16px; margin-bottom:8px; flex-wrap:wrap}
+.sec-no{font-family:var(--mono); font-size:13px; color:var(--text-faint); letter-spacing:.1em}
+.sec-head h2{font-size:26px; font-weight:600; letter-spacing:-.01em}
+.sec-head h2 .cn{font-size:16px; color:var(--text-dim); font-weight:400; margin-left:10px}
+.sec-desc{color:var(--text-dim); font-size:15px; max-width:680px; margin-bottom:30px}
+
+/* ---- category band ---- */
+.cat{margin:32px 0 14px; display:flex; align-items:center; gap:12px}
+.cat-label{font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--text); white-space:nowrap}
+.cat-cn{font-size:12px; color:var(--text-faint); font-family:var(--font)}
+.cat-rule{flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent)}
+
+/* ---- grid + cards ---- */
+.grid{display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(252px,1fr))}
+.card{
+  display:flex; flex-direction:column; text-align:left;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  overflow:hidden; cursor:pointer; font-family:inherit; color:inherit;
+  transition:border-color .18s, transform .18s;
+}
+.card:hover{border-color:var(--line-bright); transform:translateY(-2px)}
+.card:focus-visible{outline:2px solid var(--teal); outline-offset:2px}
+.stage{
+  position:relative; height:174px; padding:14px;
+  display:flex; align-items:center; justify-content:center;
+  background-color:var(--bg2);
+  background-image:radial-gradient(circle, rgba(255,255,255,.022) 1px, transparent 1px);
+  background-size:13px 13px;
+}
+.stage svg{display:block; width:100%; height:100%; overflow:visible}
+.replay{
+  position:absolute; top:9px; right:10px;
+  font-family:var(--mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--text-faint); opacity:0; transition:opacity .18s; pointer-events:none;
+  display:flex; align-items:center; gap:4px;
+}
+.card:hover .replay{opacity:1}
+.foot{border-top:1px solid var(--line); padding:11px 14px 13px; background:var(--surface2); display:flex; flex-direction:column; gap:6px}
+.name{font-weight:600; font-size:15px; letter-spacing:.005em; display:flex; align-items:baseline; gap:7px; flex-wrap:wrap}
+.name .cn{font-size:12px; color:var(--text-dim); font-weight:500}
+.meta{font-family:var(--mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--text-faint); display:flex; align-items:center; gap:7px}
+.meta .pip{width:5px; height:5px; border-radius:50%; flex:none}
+.use{font-size:12.5px; color:var(--text-dim); line-height:1.46}
+
+footer{padding:60px 0 80px; margin-top:56px; border-top:1px solid var(--line); color:var(--text-faint); font-family:var(--mono); font-size:12px; letter-spacing:.03em}
+footer .wrap{display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px}
+a{color:var(--teal); text-decoration:none}
+
+@media (max-width:560px){
+  .hero{padding:44px 0 32px}
+  .grid{grid-template-columns:1fr 1fr; gap:10px}
+  .stage{height:150px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="dot"></span><b>ESSENTIAL</b><span class="sep">/</span>charts × motion</div>
+  <div style="display:flex;gap:9px;align-items:center"><span class="schemePick"><button class="btn schemeBtn" aria-label="scheme 1"></button><button class="btn schemeBtn" aria-label="scheme 2"></button><button class="btn schemeBtn" aria-label="scheme 3"></button></span><button class="btn" id="modeToggle" title="夜间 / 白天 · night / light">☾</button><button class="btn langToggle" id="langToggle" title="中文 / English"><span class="l-cn">中</span><span class="l-sep">/</span><span class="l-en">EN</span></button><button class="btn" id="replayAll">↻ replay all</button></div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="eyebrow"><span class="t-en">DATA VIZ · CHARTS & MOTION</span><span class="t-cn">数据可视化 · 类型与动效图谱</span></div>
+    <h1>The<span class="x">·</span>Essentials</h1>
+    <p class="lede">The essential catalog of chart types and the motion vocabulary that brings them to life.
+      <span class="cn t-cn">最核心的图表类型清单，以及让它们动起来的动效语言 —— 点击任意卡片重播。</span></p>
+    <div class="keys">
+      <span class="key"><span class="sw" style="background:#2bb0a0"></span>Aqua</span>
+      <span class="key"><span class="sw" style="background:#6366f1"></span>Indigo</span>
+      <span class="key"><span class="sw" style="background:#e8702a"></span>Ember</span>
+      <span class="key" style="color:var(--text-faint)">3 schemes × night/light ↗ top-right</span>
+    </div>
+  </section>
+
+  <section class="section" id="charts">
+    <div class="sec-head"><span class="sec-no">§ 01</span><h2>Chart Types<span class="cn t-cn">图表类型</span></h2></div>
+    <p class="sec-desc">Grouped by the question each chart answers. Pick by intent first — comparison, trend, part-to-whole, distribution, relationship, flow — then by data shape.
+    </p>
+    <div id="charts-body"></div>
+  </section>
+
+  <section class="section" id="motion">
+    <div class="sec-head"><span class="sec-no">§ 02</span><h2>Motion Types<span class="cn t-cn">动效类型</span></h2></div>
+    <p class="sec-desc">How data enters, updates, and stays alive. Easing curves draw the felt timing; the labels map each move to a Disney animation principle where one applies.
+    </p>
+    <div id="motion-body"></div>
+  </section>
+</main>
+
+<footer><div class="wrap"><span>ESSENTIAL — CHARTS × MOTION</span><span>single-file template · vanilla svg + js · no deps</span></div></footer>
+
+<script>
+/* ============================================================
+   CORE ENGINE — svg helpers · scales · easing · tween/replay
+   ============================================================ */
+const SVGNS='http://www.w3.org/2000/svg';
+const REDUCE=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+const C={
+  teal:'#46b8a5', amber:'#d9933d', red:'#c0171f',
+  cool:'#6f7d96', tealL:'#8eccc0', amberL:'#e6bd86', redL:'#e0696f',
+  line:'#2a2f38', grid:'#20242b', axis:'#3a404b',
+  txt:'#9aa0ab', faint:'#5c626d', bg:'#0e1013', surf:'#1b1f26'
+};
+const PAL=[C.teal,C.amber,C.red,C.cool,C.tealL,C.amberL];
+
+/* ---- theme switcher: 3 colour schemes × night/light. Structural light/dark via the
+   body.light CSS (the teal/amber/red roles read on both); the scheme swaps the 3 accents
+   (C + PAL + --teal/--amber/--red CSS vars), then re-renders. Persisted; ?scheme= & ?mode= override. */
+const _DARKC={txt:'#9aa0ab',faint:'#5c626d',axis:'#3a404b',grid:'#20242b',line:'#262a32',bg:'#0e1013',surf:'#1b1f26'};
+const _LIGHTC={txt:'#3a3f47',faint:'#9098a3',axis:'#b0b5bd',grid:'#e9eae6',line:'#dfe1db',bg:'#fbfcf8',surf:'#eef0ea'};
+const SCHEMES=[
+  {name:'Aqua',  sw:'#2bb0a0', ac:{teal:'#2bb0a0',amber:'#d9933d',red:'#c0392b',cool:'#7d8794',tealL:'#5fc7b8',amberL:'#e6bd86',redL:'#e0696f'}, PAL:['#2bb0a0','#d9933d','#c0392b','#7d8794','#5fc7b8','#e6bd86']},
+  {name:'Indigo',sw:'#6366f1', ac:{teal:'#6366f1',amber:'#0ea5b7',red:'#f43f5e',cool:'#7d8794',tealL:'#8b8df5',amberL:'#34c3d4',redL:'#fb7185'}, PAL:['#6366f1','#0ea5b7','#f43f5e','#7d8794','#8b8df5','#34c3d4']},
+  {name:'Ember', sw:'#e8702a', ac:{teal:'#e8702a',amber:'#d9a521',red:'#d6336c',cool:'#8a8678',tealL:'#f0945a',amberL:'#e6c45a',redL:'#e85a8a'}, PAL:['#e8702a','#d9a521','#d6336c','#8a8678','#f0945a','#e6c45a']}
+];
+let _s=0,_m='dark';try{const q=new URLSearchParams(location.search);_m=q.get('mode')||localStorage.getItem('d2m-mode')||'dark';_s=+(q.get('scheme')||localStorage.getItem('d2m-scheme')||0);}catch(e){}
+if(_m!=='light'&&_m!=='dark')_m='dark'; if(!(_s>=0&&_s<SCHEMES.length))_s=0;
+function applyTheme(rerender){
+  const sc=SCHEMES[_s],rs=document.documentElement.style;
+  Object.assign(C, _m==='light'?_LIGHTC:_DARKC, sc.ac);
+  PAL.length=0;sc.PAL.forEach(x=>PAL.push(x));
+  rs.setProperty('--teal',sc.ac.teal);rs.setProperty('--amber',sc.ac.amber);rs.setProperty('--red',sc.ac.red);rs.setProperty('--accent',sc.ac.teal);
+  document.body.classList[_m==='light'?'add':'remove']('light');
+  const mb=document.getElementById('modeToggle');if(mb)mb.textContent=(_m==='light'?'☀':'☾');
+  document.querySelectorAll('.schemeBtn').forEach((b,i)=>b.classList.toggle('on',i===_s));
+  if(rerender){cards.forEach(c=>{try{c.render&&c.render();}catch(e){}});}
+}
+applyTheme(false);
+addEventListener('DOMContentLoaded',()=>{
+  const mb=document.getElementById('modeToggle');
+  if(mb)mb.addEventListener('click',()=>{_m=(_m==='light'?'dark':'light');try{localStorage.setItem('d2m-mode',_m);}catch(e){}applyTheme(true);});
+  document.querySelectorAll('.schemeBtn').forEach((b,i)=>{if(SCHEMES[i]){const a=SCHEMES[i].ac;b.style.background='linear-gradient(90deg,'+a.teal+' 0 33%,'+a.amber+' 33% 66%,'+a.red+' 66% 100%)';b.title=SCHEMES[i].name;b.addEventListener('click',()=>{_s=i;try{localStorage.setItem('d2m-scheme',i);}catch(e){}applyTheme(true);});}});
+});
+
+/* ---- EN / CN language toggle (names switch; descriptions are CN) ---- */
+function LB(en,cn){return (document.body&&document.body.classList.contains('lang-en'))?en:cn;}
+(function(){const KEY='d2m-lang';
+  function set(l,rr){const b=document.body;if(!b)return;b.classList.remove('lang-en','lang-cn');b.classList.add('lang-'+l);try{localStorage.setItem(KEY,l);}catch(e){}if(rr){cards.forEach(c=>{try{c.render&&c.render();}catch(e){}});}}
+  let lang='cn';try{const q=new URLSearchParams(location.search);lang=(q.get('lang')==='en'||q.get('lang')==='cn')?q.get('lang'):(localStorage.getItem(KEY)||'cn');}catch(e){}set(lang,false);
+  addEventListener('DOMContentLoaded',()=>{const btn=document.getElementById('langToggle');if(btn)btn.addEventListener('click',()=>set(document.body.classList.contains('lang-cn')?'en':'cn',true));});
+})();
+
+/* element factory */
+function E(tag,attrs={},kids){
+  const e=document.createElementNS(SVGNS,tag);
+  for(const k in attrs) e.setAttribute(k,attrs[k]);
+  if(kids) (Array.isArray(kids)?kids:[kids]).forEach(c=>e.appendChild(c));
+  return e;
+}
+/* sized svg matched to a viewBox */
+function SVG(w=280,h=152){
+  return E('svg',{viewBox:`0 0 ${w} ${h}`,preserveAspectRatio:'xMidYMid meet'});
+}
+const lin=(d0,d1,r0,r1)=>v=>r0+(v-d0)/(d1-d0||1)*(r1-r0);
+const lerp=(a,b,t)=>a+(b-a)*t;
+const rng=n=>[...Array(n).keys()];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+/* deterministic pseudo-random so demos are stable */
+function seeded(s){return ()=>{s=(s*9301+49297)%233280;return s/233280;};}
+
+/* ---- easing ---- */
+const Ease={
+  linear:t=>t,
+  outCubic:t=>1-Math.pow(1-t,3),
+  inOutCubic:t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,
+  inBack:t=>{const c=1.70158;return (c+1)*t*t*t-c*t*t;},          // anticipation
+  outBack:t=>{const c=1.70158,c3=c+1;return 1+c3*Math.pow(t-1,3)+c*Math.pow(t-1,2);}, // overshoot
+  outElastic:t=>{const c=(2*Math.PI)/3;return t===0?0:t===1?1:Math.pow(2,-10*t)*Math.sin((t*10-.75)*c)+1;},
+  outBounce:t=>{const n=7.5625,d=2.75;if(t<1/d)return n*t*t;if(t<2/d)return n*(t-=1.5/d)*t+.75;if(t<2.5/d)return n*(t-=2.25/d)*t+.9375;return n*(t-=2.625/d)*t+.984375;}
+};
+
+/* ---- tween: rAF, replay-safe, reduced-motion aware ---- */
+function tween(stage,o){
+  const {dur=700,ease=Ease.outCubic,from=0,to=1,delay=0,onUpdate,onDone}=o;
+  if(REDUCE){onUpdate&&onUpdate(to,1);onDone&&onDone();return {alive:false};}
+  const tok={alive:true};(stage.__tw=stage.__tw||[]).push(tok);
+  const t0=performance.now()+delay;
+  (function frame(now){
+    if(!tok.alive)return;
+    if(now<t0){requestAnimationFrame(frame);return;}
+    const p=dur<=0?1:clamp((now-t0)/dur,0,1);
+    onUpdate&&onUpdate(from+(to-from)*ease(p),p);
+    if(p<1)requestAnimationFrame(frame); else onDone&&onDone();
+  })(performance.now());
+  return tok;
+}
+function killAnims(stage){
+  (stage.__tw||[]).forEach(t=>t.alive=false);stage.__tw=[];
+  if(stage.__int){clearInterval(stage.__int);stage.__int=null;}
+  try{stage.getAnimations({subtree:true}).forEach(a=>a.cancel());}catch(e){}
+}
+
+/* ---- registries + card harness ---- */
+const Charts=[], Motions=[];
+function chart(name,cn,cat,use,build,data){Charts.push({name,cn,cat,use,build,data});}
+function motion(name,cn,cat,spec,build,data){Motions.push({name,cn,cat,spec,build,data});}
+
+const cards=[];
+function mountCard(host,def,kind){
+  const card=document.createElement('button');card.className='card';card.type='button';
+  card.setAttribute('aria-label',def.name);
+  const stage=document.createElement('div');stage.className='stage';
+  stage.innerHTML='<span class="replay">↻ replay</span>';
+  const foot=document.createElement('div');foot.className='foot';
+  const metaR=kind==='motion'
+    ? `<span class="meta"><span class="pip" style="background:${C.teal}"></span>${def.cat} · ${def.spec}</span>`
+    : `<span class="meta"><span class="pip" style="background:${PAL[def._ci%PAL.length]}"></span>${def.cat}</span>`;
+  foot.innerHTML=`<span class="name"><span class="t-en">${def.name}</span><span class="cn t-cn">${def.cn}</span></span>${metaR}${def.use?`<span class="use t-cn">${def.use}</span>`:''}${def.data?'<span class="use t-cn" style="border-top:1px dashed var(--line);padding-top:8px;margin-top:2px;font-size:11px"><span style="font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)">适合 </span>'+def.data+'</span>':''}`;
+  card.appendChild(stage);card.appendChild(foot);host.appendChild(card);
+
+  let api={};
+  function render(){killAnims(stage);const keep=stage.querySelector('.replay');stage.innerHTML='';stage.appendChild(keep);api=def.build(stage)||{};}
+  render();
+  function replay(){if(api.play){killAnims(stage);api.reset&&api.reset();api.play();}else render();}
+  card.addEventListener('click',replay);
+  cards.push({play:replay,render,stage,card});
+  return {play:replay};
+}
+
+/* boot after modules load (see end of file) */
+
+/* ============================================================
+   SECTION 01 — CHART TYPES
+   ============================================================ */
+const W=280,H=152;
+const MONO="'JetBrains Mono',ui-monospace,monospace";
+let UID=0; const uid=()=>'u'+(++UID);
+function plot(stage,pad){const s=SVG(W,H);stage.appendChild(s);const p=Object.assign({l:16,r:16,t:16,b:18},pad||{});return {s,p};}
+function baseline(s,p){s.appendChild(E('line',{x1:p.l,y1:H-p.b,x2:W-p.r,y2:H-p.b,stroke:C.axis,'stroke-width':1,'stroke-linecap':'round'}));}
+function arc(cx,cy,r,a0,a1,r0){
+  const p0=[cx+Math.cos(a0)*r,cy+Math.sin(a0)*r],p1=[cx+Math.cos(a1)*r,cy+Math.sin(a1)*r];
+  const large=(a1-a0)>Math.PI?1:0;
+  if(!r0||r0<=0) return `M${cx} ${cy} L${p0[0].toFixed(2)} ${p0[1].toFixed(2)} A${r} ${r} 0 ${large} 1 ${p1[0].toFixed(2)} ${p1[1].toFixed(2)} Z`;
+  const q0=[cx+Math.cos(a1)*r0,cy+Math.sin(a1)*r0],q1=[cx+Math.cos(a0)*r0,cy+Math.sin(a0)*r0];
+  return `M${p0[0].toFixed(2)} ${p0[1].toFixed(2)} A${r} ${r} 0 ${large} 1 ${p1[0].toFixed(2)} ${p1[1].toFixed(2)} L${q0[0].toFixed(2)} ${q0[1].toFixed(2)} A${r0} ${r0} 0 ${large} 0 ${q1[0].toFixed(2)} ${q1[1].toFixed(2)} Z`;
+}
+
+/* ---- COMPARISON ---- */
+chart('Column','柱状图','COMPARISON','比较各分类之间的数值大小 —— 最基础、最易读的图表。',stage=>{
+  const {s,p}=plot(stage);baseline(s,p);
+  const d=[34,58,46,72,40,64],max=80,y0=H-p.b,n=d.length,gw=(W-p.l-p.r)/n,bw=gw*0.62;
+  const bars=d.map((v,i)=>{const bx=p.l+gw*i+(gw-bw)/2;const r=E('rect',{x:bx,width:bw,rx:2,fill:PAL[0],y:y0,height:0});s.appendChild(r);return {r,v,h:(v/max)*(y0-p.t)};});
+  bars.forEach(b=>{b.r.setAttribute('y',y0-b.h);b.r.setAttribute('height',b.h);});
+  const reset=()=>bars.forEach(b=>{b.r.setAttribute('y',y0);b.r.setAttribute('height',0);});
+  const play=()=>bars.forEach((b,i)=>tween(stage,{dur:620,delay:i*70,ease:Ease.outCubic,onUpdate:t=>{b.r.setAttribute('y',y0-b.h*t);b.r.setAttribute('height',b.h*t);}}));
+  return {play,reset};
+}, "各分类的计数对比 · 销量 · 人数 · 营收");
+chart('Bar (Horizontal)','条形图','COMPARISON','类别名较长或类别较多时优于柱状图，标签更好读。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const pl=16,pr=16,pt=12,pb=12,d=[72,58,46,38,28],max=80,n=d.length,bh=(H-pt-pb)/n*0.6,x0=pl,full=W-pr-pl;
+  s.appendChild(E('line',{x1:x0,y1:pt-2,x2:x0,y2:H-pb+2,stroke:C.axis,'stroke-width':1}));
+  const bars=d.map((v,i)=>{const by=pt+(H-pt-pb)/n*i+((H-pt-pb)/n-bh)/2;const r=E('rect',{x:x0,y:by,height:bh,rx:2,fill:PAL[0],width:(v/max)*full});s.appendChild(r);return {r,v};});
+  const reset=()=>bars.forEach(b=>b.r.setAttribute('width',0));
+  const play=()=>bars.forEach((b,i)=>tween(stage,{dur:600,delay:i*70,ease:Ease.outCubic,onUpdate:t=>b.r.setAttribute('width',(b.v/max)*full*t)}));
+  return {play,reset};
+}, "长名称的分类排名 · 城市/国家 · 商品名");
+chart('Grouped Bar','分组柱状','COMPARISON','在分类内再按子类并排对比（如各季度的两条产品线）。',stage=>{
+  const {s,p}=plot(stage);baseline(s,p);
+  const groups=[[40,58],[52,34],[64,48],[46,62],[58,40]],max=80,y0=H-p.b,gw=(W-p.l-p.r)/groups.length,bw=gw*0.3,bars=[];
+  groups.forEach((g,i)=>{const gx=p.l+gw*i+gw*0.18;g.forEach((v,j)=>{const bx=gx+j*(bw+2);const r=E('rect',{x:bx,width:bw,rx:1.5,fill:PAL[j]});s.appendChild(r);const h=(v/max)*(y0-p.t);r.setAttribute('y',y0-h);r.setAttribute('height',h);bars.push({r,h});});});
+  const reset=()=>bars.forEach(b=>{b.r.setAttribute('y',y0);b.r.setAttribute('height',0);});
+  const play=()=>bars.forEach((b,i)=>tween(stage,{dur:560,delay:i*45,ease:Ease.outCubic,onUpdate:t=>{b.r.setAttribute('y',y0-b.h*t);b.r.setAttribute('height',b.h*t);}}));
+  return {play,reset};
+}, "分类内的子类对比 · 各季度两条产品线 · 男女对比");
+chart('Lollipop','棒棒糖图','COMPARISON','柱状图的轻量替代，减少墨水、突出端点数值。',stage=>{
+  const {s,p}=plot(stage);baseline(s,p);
+  const d=[36,60,44,72,50,64],max=80,y0=H-p.b,x=lin(0,d.length-1,p.l+8,W-p.r-8);
+  const items=d.map((v,i)=>{const cx=x(i);const ln=E('line',{x1:cx,y1:y0,x2:cx,y2:y0,stroke:C.line,'stroke-width':2});const c=E('circle',{cx,cy:y0,r:5,fill:PAL[0]});s.appendChild(ln);s.appendChild(c);const yy=y0-(v/max)*(y0-p.t);ln.setAttribute('y2',yy);c.setAttribute('cy',yy);return {ln,c,v};});
+  const set=(it,t)=>{const yy=y0-(it.v/max)*(y0-p.t)*t;it.ln.setAttribute('y2',yy);it.c.setAttribute('cy',yy);};
+  const reset=()=>items.forEach(it=>set(it,0));
+  const play=()=>items.forEach((it,i)=>tween(stage,{dur:560,delay:i*60,ease:Ease.outBack,onUpdate:t=>set(it,t)}));
+  return {play,reset};
+}, "类别较多的数值排名 · 满意度评分 · 城市榜单");
+chart('Bullet','子弹图','COMPARISON','在一条带上对比 实际值/目标值/区间 —— KPI 仪表的紧凑替代。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const cx=20,cw=W-40,cy=H/2,bh=26,val=0.68;
+  [[0,.45,'#20242b'],[.45,.75,'#2a2f38'],[.75,1,'#343a44']].forEach(([a,b,col])=>s.appendChild(E('rect',{x:cx+cw*a,y:cy-bh/2,width:cw*(b-a),height:bh,fill:col})));
+  const measure=E('rect',{x:cx,y:cy-7,width:cw*val,height:14,rx:2,fill:PAL[0]});s.appendChild(measure);
+  const target=cx+cw*0.82;s.appendChild(E('line',{x1:target,y1:cy-bh/2-3,x2:target,y2:cy+bh/2+3,stroke:C.amber,'stroke-width':3,'stroke-linecap':'round'}));
+  const reset=()=>measure.setAttribute('width',0);
+  const play=()=>tween(stage,{dur:780,ease:Ease.outCubic,onUpdate:t=>measure.setAttribute('width',cw*val*t)});
+  return {play,reset};
+}, "实际值 vs 目标/区间 · 销售达成率 · KPI 完成度");
+chart('Radar','雷达图','COMPARISON','在多个维度上对比一个或多个对象的综合表现。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const cx=W/2,cy=H/2+2,R=58,n=6,ang=i=>-Math.PI/2+i/n*2*Math.PI,vals=[.8,.55,.9,.6,.75,.5];
+  for(let r=1;r<=3;r++){const pp=rng(n).map(i=>[cx+Math.cos(ang(i))*R*r/3,cy+Math.sin(ang(i))*R*r/3]);s.appendChild(E('polygon',{points:pp.map(q=>q.join(',')).join(' '),fill:'none',stroke:C.grid,'stroke-width':1}));}
+  rng(n).forEach(i=>s.appendChild(E('line',{x1:cx,y1:cy,x2:cx+Math.cos(ang(i))*R,y2:cy+Math.sin(ang(i))*R,stroke:C.grid,'stroke-width':1})));
+  const poly=E('polygon',{points:'',fill:PAL[0],'fill-opacity':.18,stroke:PAL[0],'stroke-width':2,'stroke-linejoin':'round'});s.appendChild(poly);
+  const set=t=>poly.setAttribute('points',vals.map((v,i)=>[cx+Math.cos(ang(i))*R*v*t,cy+Math.sin(ang(i))*R*v*t]).map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' '));
+  set(1);
+  return {play:()=>tween(stage,{dur:700,ease:Ease.outBack,onUpdate:set}),reset:()=>set(0)};
+}, "多维度的综合画像 · 能力评分 · 球员属性 · 产品维度");
+
+/* ---- TREND ---- */
+chart('Line','折线图','TREND','展示数值随连续区间（通常是时间）的变化趋势。',stage=>{
+  const {s,p}=plot(stage);const d=[20,32,28,46,40,58,52,70],max=80,x=lin(0,d.length-1,p.l,W-p.r),y=lin(0,max,H-p.b,p.t);
+  const pts=d.map((v,i)=>[x(i),y(v)]);const dd=pts.map((q,i)=>(i?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' ');
+  const pa=E('path',{d:dd,fill:'none',stroke:PAL[0],'stroke-width':2.4,'stroke-linejoin':'round','stroke-linecap':'round'});s.appendChild(pa);const L=pa.getTotalLength?pa.getTotalLength():400;pa.setAttribute('stroke-dasharray',L);
+  const last=pts[pts.length-1];const dot=E('circle',{r:3.5,fill:PAL[0],cx:last[0],cy:last[1]});s.appendChild(dot);
+  return {play:()=>{tween(stage,{dur:900,ease:Ease.outCubic,onUpdate:t=>pa.setAttribute('stroke-dashoffset',L*(1-t)),onDone:()=>dot.setAttribute('opacity',1)});},reset:()=>{pa.setAttribute('stroke-dashoffset',L);dot.setAttribute('opacity',0);}};
+}, "时间序列 · 股价 · 多年趋势 · 月度活跃");
+chart('Multi-line','多折线','TREND','在同一坐标系对比多条序列的走向（不超过 4~5 条）。',stage=>{
+  const {s,p}=plot(stage);const series=[[20,30,26,40,36,52,48,60],[40,36,48,42,54,46,58,50],[12,18,22,20,30,34,30,40]],max=70,x=lin(0,series[0].length-1,p.l,W-p.r),y=lin(0,max,H-p.b,p.t);
+  const paths=series.map((d,si)=>{const dd=d.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' ');const pa=E('path',{d:dd,fill:'none',stroke:PAL[si],'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'});s.appendChild(pa);const L=pa.getTotalLength?pa.getTotalLength():400;pa.setAttribute('stroke-dasharray',L);return {pa,L};});
+  return {play:()=>paths.forEach((o,i)=>tween(stage,{dur:850,delay:i*120,ease:Ease.outCubic,onUpdate:t=>o.pa.setAttribute('stroke-dashoffset',o.L*(1-t))})),reset:()=>paths.forEach(o=>o.pa.setAttribute('stroke-dashoffset',o.L))};
+}, "多条序列走势对比 · 各国趋势 · 多产品销量");
+chart('Area','面积图','TREND','在折线的基础上填充，强调累积量或体量感。',stage=>{
+  const {s,p}=plot(stage);const d=[18,30,24,42,36,54,48,66],max=80,x=lin(0,d.length-1,p.l,W-p.r),y=lin(0,max,H-p.b,p.t);
+  const pts=d.map((v,i)=>[x(i),y(v)]);const line=pts.map((q,i)=>(i?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' ');
+  const area=line+` L${(W-p.r).toFixed(1)} ${H-p.b} L${p.l} ${H-p.b} Z`,id=uid();
+  const grad=E('linearGradient',{id:id+'g',x1:0,y1:0,x2:0,y2:1},[E('stop',{offset:0,'stop-color':PAL[0],'stop-opacity':.45}),E('stop',{offset:1,'stop-color':PAL[0],'stop-opacity':.03})]);
+  const clip=E('clipPath',{id:id+'c'},E('rect',{x:p.l,y:0,width:0,height:H}));const cr=clip.firstChild;
+  s.appendChild(E('defs',{},[grad,clip]));
+  s.appendChild(E('path',{d:area,fill:`url(#${id+'g'})`,'clip-path':`url(#${id+'c'})`}));
+  s.appendChild(E('path',{d:line,fill:'none',stroke:PAL[0],'stroke-width':2.2,'clip-path':`url(#${id+'c'})`,'stroke-linejoin':'round'}));
+  const full=W-p.r-p.l;cr.setAttribute('width',full);
+  return {play:()=>tween(stage,{dur:850,ease:Ease.outCubic,onUpdate:t=>cr.setAttribute('width',full*t)}),reset:()=>cr.setAttribute('width',0)};
+}, "单一序列的累积量 · 累计销量 · 流量体量");
+chart('Stacked Area','堆叠面积','TREND','展示各部分如何随时间累加成总量，并看清占比变化。',stage=>{
+  const {s,p}=plot(stage);const series=[[10,14,12,18,16,22],[14,12,18,16,20,18],[8,10,9,12,14,16]],n=series[0].length,totals=rng(n).map(i=>series.reduce((a,sd)=>a+sd[i],0)),max=Math.max(...totals)*1.1,x=lin(0,n-1,p.l,W-p.r),y=lin(0,max,H-p.b,p.t),id=uid();
+  const clip=E('clipPath',{id},E('rect',{x:p.l,y:0,width:0,height:H}));const cr=clip.firstChild;s.appendChild(E('defs',{},clip));
+  let base=rng(n).map(()=>0);
+  series.forEach((d,si)=>{const top=d.map((v,i)=>base[i]+v);const up=top.map((v,i)=>[x(i),y(v)]),lo=base.map((v,i)=>[x(i),y(v)]).reverse();const dd='M'+up.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L')+' L'+lo.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L')+' Z';s.appendChild(E('path',{d:dd,fill:PAL[si],'fill-opacity':.8,'clip-path':`url(#${id})`}));base=top;});
+  const full=W-p.r-p.l;cr.setAttribute('width',full);
+  return {play:()=>tween(stage,{dur:850,ease:Ease.outCubic,onUpdate:t=>cr.setAttribute('width',full*t)}),reset:()=>cr.setAttribute('width',0)};
+}, "各部分随时间累加成总量 · 渠道构成趋势 · 收入来源演变");
+chart('Streamgraph','流图','TREND','堆叠面积的“居中”变体，强调主题此消彼长、形态优美。',stage=>{
+  const {s,p}=plot(stage,{t:8,b:8});const series=[[6,10,16,12,8,5],[10,14,10,16,20,14],[8,6,10,8,12,18],[5,8,6,10,8,6]],n=series[0].length,totals=rng(n).map(i=>series.reduce((a,sd)=>a+sd[i],0)),max=Math.max(...totals),x=lin(0,n-1,p.l,W-p.r),mid=H/2,sc=(H-16)/max,id=uid();
+  const clip=E('clipPath',{id},E('rect',{x:p.l,y:0,width:0,height:H}));const cr=clip.firstChild;s.appendChild(E('defs',{},clip));
+  let base=rng(n).map(i=>mid-totals[i]*sc/2);
+  series.forEach((d,si)=>{const top=d.map((v,i)=>base[i]+v*sc);const up=top.map((v,i)=>[x(i),v]),lo=base.map((v,i)=>[x(i),v]).reverse();const dd='M'+up.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L')+' L'+lo.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L')+' Z';s.appendChild(E('path',{d:dd,fill:PAL[si],'fill-opacity':.85,'clip-path':`url(#${id})`}));base=top;});
+  const full=W-p.r-p.l;cr.setAttribute('width',full);
+  return {play:()=>tween(stage,{dur:900,ease:Ease.outCubic,onUpdate:t=>cr.setAttribute('width',full*t)}),reset:()=>cr.setAttribute('width',0)};
+}, "众多主题此消彼长 · 音乐流派热度 · 话题声量演变");
+chart('Candlestick','K 线图','TREND','金融时序：每根烛同时编码 开/收/高/低 四个价格。',stage=>{
+  const {s,p}=plot(stage);baseline(s,p);const r=seeded(7),n=11;let price=40;
+  const data=rng(n).map(()=>{const o=price,c=clamp(o+(r()-.5)*18,12,70),hi=Math.max(o,c)+r()*8,lo=Math.min(o,c)-r()*8;price=c;return {o,c,hi,lo};});
+  const y=lin(8,78,H-p.b,p.t),x=lin(0,n-1,p.l+8,W-p.r-8),cw=7;
+  const cells=data.map((d,i)=>{const cx=x(i),up=d.c>=d.o,col=up?C.teal:C.red;const wick=E('line',{x1:cx,x2:cx,y1:y(d.hi),y2:y(d.lo),stroke:col,'stroke-width':1.4});const body=E('rect',{x:cx-cw/2,y:Math.min(y(d.o),y(d.c)),width:cw,height:Math.max(2,Math.abs(y(d.o)-y(d.c))),fill:col});s.appendChild(wick);s.appendChild(body);return {wick,body};});
+  return {play:()=>cells.forEach((c,i)=>tween(stage,{dur:160,delay:i*55,ease:Ease.outCubic,onUpdate:t=>{c.wick.setAttribute('opacity',t);c.body.setAttribute('opacity',t);}})),reset:()=>cells.forEach(c=>{c.wick.setAttribute('opacity',0);c.body.setAttribute('opacity',0);})};
+}, "金融时序 OHLC · 股票/外汇日线 · 加密币行情");
+
+/* ---- PART-TO-WHOLE ---- */
+chart('Pie','饼图','PART-TO-WHOLE','展示构成占比。建议 ≤5 个扇区，否则改用条形图。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const cx=W/2,cy=H/2+2,R=58,vals=[34,26,20,12,8],tot=vals.reduce((a,b)=>a+b);let acc=-Math.PI/2;
+  const segs=vals.map((v,i)=>{const a0=acc,a1=acc+v/tot*2*Math.PI;acc=a1;const pa=E('path',{d:'',fill:PAL[i%PAL.length]});s.appendChild(pa);return {pa,a0,a1};});
+  const draw=t=>{const end=-Math.PI/2+Math.min(t,.9999)*2*Math.PI;segs.forEach(g=>g.pa.setAttribute('d',end<=g.a0?'':arc(cx,cy,R,g.a0,Math.min(end,g.a1))));};draw(1);
+  return {play:()=>tween(stage,{dur:850,ease:Ease.outCubic,onUpdate:draw}),reset:()=>draw(0)};
+}, "少量分类的构成占比 · 市场份额 · 预算分配");
+chart('Donut','环形图','PART-TO-WHOLE','饼图的留白版本，中心可放总量/标题，更现代。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const cx=W/2,cy=H/2+2,R=58,r0=34,vals=[40,28,18,14],tot=vals.reduce((a,b)=>a+b);let acc=-Math.PI/2;
+  const segs=vals.map((v,i)=>{const a0=acc,a1=acc+v/tot*2*Math.PI;acc=a1;const pa=E('path',{d:'',fill:PAL[i%PAL.length]});s.appendChild(pa);return {pa,a0,a1};});
+  const lab=E('text',{x:cx,y:cy+1,'text-anchor':'middle','dominant-baseline':'middle',fill:C.txt,'font-family':MONO,'font-size':16,'font-weight':700});lab.textContent='100%';s.appendChild(lab);
+  const draw=t=>{const end=-Math.PI/2+Math.min(t,.9999)*2*Math.PI;segs.forEach(g=>g.pa.setAttribute('d',end<=g.a0?'':arc(cx,cy,R,g.a0,Math.min(end,g.a1),r0)));};draw(1);
+  return {play:()=>tween(stage,{dur:850,ease:Ease.outCubic,onUpdate:draw,onDone:()=>lab.setAttribute('opacity',1)}),reset:()=>{draw(0);lab.setAttribute('opacity',0);}};
+}, "带总量的构成占比 · 完成率 · 份额 + 中心 KPI");
+chart('100% Stacked','百分比堆叠','PART-TO-WHOLE','跨多个分类比较“构成比例”，每根归一化到 100%。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const pl=16,pr=16,pt=14,pb=14,cats=[[5,3,2],[4,4,3],[6,2,3],[3,5,2],[5,3,3]],n=cats.length,gw=(W-pl-pr)/n,bw=gw*0.56,H0=H-pt-pb,all=[];
+  cats.forEach((c,i)=>{const tot=c.reduce((a,b)=>a+b);let off=0;const bx=pl+gw*i+(gw-bw)/2;c.forEach((v,j)=>{const frac=v/tot;const r=E('rect',{x:bx,width:bw,fill:PAL[j],y:pt+H0*off,height:H0*frac});s.appendChild(r);all.push({r,frac,off,bx});off+=frac;});});
+  const reset=()=>all.forEach(o=>{o.r.setAttribute('height',0);o.r.setAttribute('y',pt+H0*o.off);});
+  const play=()=>all.forEach((o,i)=>tween(stage,{dur:600,delay:Math.floor(i/3)*40,ease:Ease.outCubic,onUpdate:t=>{o.r.setAttribute('height',H0*o.frac*t);o.r.setAttribute('y',pt+H0*o.off);}}));
+  return {play,reset};
+}, "跨分类比较构成比例 · 各地区客群结构 · 各渠道占比");
+chart('Treemap','矩形树图','PART-TO-WHOLE','用面积编码层级占比，空间利用率高，适合很多类别。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const pad=14,vals=[34,22,16,12,9,7],rects=[];
+  (function layout(items,rx,ry,rw,rh,horiz){if(!items.length)return;if(items.length===1){rects.push([rx,ry,rw,rh,items[0].c]);return;}const sum=items.reduce((a,b)=>a+b.v,0),half=sum/2;let acc=0,k=0;while(k<items.length-1&&acc+items[k].v<half){acc+=items[k].v;k++;}const aI=items.slice(0,k+1),bI=items.slice(k+1),frac=aI.reduce((a,b)=>a+b.v,0)/sum;if(horiz){const ww=rw*frac;layout(aI,rx,ry,ww,rh,!horiz);layout(bI,rx+ww,ry,rw-ww,rh,!horiz);}else{const hh=rh*frac;layout(aI,rx,ry,rw,hh,!horiz);layout(bI,rx,ry+hh,rw,rh-hh,!horiz);}})(vals.map((v,i)=>({v,c:i})),pad,pad,W-pad*2,H-pad*2,true);
+  const nodes=rects.map(([rx,ry,rw,rh,ci])=>{const r=E('rect',{x:rx+1,y:ry+1,width:Math.max(0,rw-2),height:Math.max(0,rh-2),rx:2,fill:PAL[ci%PAL.length],'fill-opacity':.9});s.appendChild(r);return r;});
+  return {play:()=>nodes.forEach((nd,i)=>tween(stage,{dur:420,delay:i*55,ease:Ease.outCubic,onUpdate:t=>nd.setAttribute('opacity',t)})),reset:()=>nodes.forEach(nd=>nd.setAttribute('opacity',0))};
+}, "很多类别的层级占比 · 磁盘空间 · 投资组合 · 品类销售");
+chart('Funnel','漏斗图','PART-TO-WHOLE','展示流程各阶段的转化与流失（注册→激活→付费）。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const stages=[1,.72,.5,.33,.2],n=stages.length,top=14,bot=H-14,cx=W/2,maxW=W-60,sh=(bot-top)/n;
+  const rows=stages.map((v,i)=>{const w0=maxW*v,w1=maxW*(stages[i+1]??v*.7),yT=top+sh*i,yB=yT+sh-4;const pts=[[cx-w0/2,yT],[cx+w0/2,yT],[cx+w1/2,yB],[cx-w1/2,yB]];const pa=E('polygon',{points:pts.map(q=>q.join(',')).join(' '),fill:PAL[i%PAL.length],'fill-opacity':.88});s.appendChild(pa);return pa;});
+  const reset=()=>rows.forEach(r=>{r.style.transformBox='fill-box';r.style.transformOrigin='center';r.style.transform='scaleX(0)';r.style.opacity=0;});
+  const play=()=>rows.forEach((r,i)=>tween(stage,{dur:480,delay:i*90,ease:Ease.outCubic,onUpdate:t=>{r.style.transform=`scaleX(${t})`;r.style.opacity=t;}}));
+  return {play,reset};
+}, "流程各阶段的转化流失 · 注册→激活→付费 · 销售漏斗");
+
+/* ---- DISTRIBUTION ---- */
+chart('Histogram','直方图','DISTRIBUTION','展示单变量的分布形态：集中趋势、离散与偏态。',stage=>{
+  const {s,p}=plot(stage);baseline(s,p);const bins=[3,7,13,20,24,19,12,7,3],max=26,n=bins.length,y0=H-p.b,bw=(W-p.l-p.r)/n;
+  const bars=bins.map((v,i)=>{const bx=p.l+bw*i;const r=E('rect',{x:bx+.6,width:bw-1.2,fill:PAL[0],y:y0,height:0});s.appendChild(r);return {r,h:(v/max)*(y0-p.t)};});
+  bars.forEach(b=>{b.r.setAttribute('y',y0-b.h);b.r.setAttribute('height',b.h);});
+  return {play:()=>bars.forEach((b,i)=>tween(stage,{dur:520,delay:i*40,ease:Ease.outCubic,onUpdate:t=>{b.r.setAttribute('y',y0-b.h*t);b.r.setAttribute('height',b.h*t);}})),reset:()=>bars.forEach(b=>{b.r.setAttribute('y',y0);b.r.setAttribute('height',0);})};
+}, "单变量的分布形态 · 年龄/身高分布 · 响应时间 · 价格区间");
+chart('Box Plot','箱线图','DISTRIBUTION','用五数概括对比多组分布：中位、四分位、极值与离群。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const groups=[{min:18,q1:34,med:46,q3:58,max:72},{min:24,q1:38,med:44,q3:52,max:66},{min:14,q1:28,med:40,q3:50,max:74}],y=lin(10,78,H-16,16),n=groups.length,gw=(W-32)/n,items=[];
+  groups.forEach((g,i)=>{const cx=16+gw*i+gw/2,bw=26,grp=E('g',{});s.appendChild(grp);grp.appendChild(E('line',{x1:cx,x2:cx,y1:y(g.min),y2:y(g.max),stroke:C.cool,'stroke-width':1.5}));grp.appendChild(E('line',{x1:cx-7,x2:cx+7,y1:y(g.min),y2:y(g.min),stroke:C.cool,'stroke-width':1.5}));grp.appendChild(E('line',{x1:cx-7,x2:cx+7,y1:y(g.max),y2:y(g.max),stroke:C.cool,'stroke-width':1.5}));grp.appendChild(E('rect',{x:cx-bw/2,y:y(g.q3),width:bw,height:y(g.q1)-y(g.q3),fill:PAL[i%PAL.length],'fill-opacity':.25,stroke:PAL[i%PAL.length],'stroke-width':1.6}));grp.appendChild(E('line',{x1:cx-bw/2,x2:cx+bw/2,y1:y(g.med),y2:y(g.med),stroke:PAL[i%PAL.length],'stroke-width':2.4}));grp.style.transformBox='fill-box';grp.style.transformOrigin='center';items.push(grp);});
+  const reset=()=>items.forEach(g=>{g.style.opacity=0;g.style.transform='scaleY(0.2)';});
+  const play=()=>items.forEach((g,i)=>tween(stage,{dur:520,delay:i*100,ease:Ease.outBack,onUpdate:t=>{g.style.opacity=t;g.style.transform=`scaleY(${.2+.8*t})`;}}));
+  return {play,reset};
+}, "多组分布对比 · 各组实验数据 · 班级成绩 · 离群检测");
+chart('Violin','小提琴图','DISTRIBUTION','箱线图 + 密度曲线，既给统计量又显示分布形状。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const groups=3,gw=(W-32)/groups,y=lin(0,1,H-14,14),items=[];
+  rng(groups).forEach(gi=>{const cx=16+gw*gi+gw/2,center=.4+gi*.1,spread=.18+gi*.03,maxW=26,N=20,left=[],right=[];for(let k=0;k<=N;k++){const yy=k/N,d=Math.exp(-Math.pow((yy-center)/spread,2)),w=d*maxW;left.push([cx-w,y(yy)]);right.push([cx+w,y(yy)]);}const pts=left.concat(right.reverse());const pa=E('path',{d:'M'+pts.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L')+' Z',fill:PAL[gi%PAL.length],'fill-opacity':.7});s.appendChild(pa);pa.style.transformBox='fill-box';pa.style.transformOrigin='center';items.push(pa);});
+  const reset=()=>items.forEach(p=>{p.style.opacity=0;p.style.transform='scaleX(0.1)';});
+  const play=()=>items.forEach((p,i)=>tween(stage,{dur:560,delay:i*100,ease:Ease.outCubic,onUpdate:t=>{p.style.opacity=t;p.style.transform=`scaleX(${.1+.9*t})`;}}));
+  return {play,reset};
+}, "分布形状 + 统计量 · 各组测量数据 · 工资分布对比");
+chart('Density','密度曲线','DISTRIBUTION','直方图的平滑版（KDE），对比多个分布而不受分箱影响。',stage=>{
+  const {s,p}=plot(stage);baseline(s,p);const curves=[{c:.35,sp:.12},{c:.6,sp:.16}],x=lin(0,1,p.l,W-p.r),y0=H-p.b;
+  const paths=curves.map((cv,ci)=>{const N=40,pts=[];let peak=0;for(let k=0;k<=N;k++){const xx=k/N,d=Math.exp(-Math.pow((xx-cv.c)/cv.sp,2));peak=Math.max(peak,d);pts.push([xx,d]);}const yy=v=>y0-(v/peak)*(y0-p.t)*.9;const line='M'+pts.map(q=>x(q[0]).toFixed(1)+' '+yy(q[1]).toFixed(1)).join(' L');s.appendChild(E('path',{d:line+` L${x(1).toFixed(1)} ${y0} L${x(0).toFixed(1)} ${y0} Z`,fill:PAL[ci],'fill-opacity':.16}));const pa=E('path',{d:line,fill:'none',stroke:PAL[ci],'stroke-width':2.2});s.appendChild(pa);const L=pa.getTotalLength?pa.getTotalLength():400;pa.setAttribute('stroke-dasharray',L);return {pa,L};});
+  return {play:()=>paths.forEach((o,i)=>tween(stage,{dur:800,delay:i*150,ease:Ease.outCubic,onUpdate:t=>o.pa.setAttribute('stroke-dashoffset',o.L*(1-t))})),reset:()=>paths.forEach(o=>o.pa.setAttribute('stroke-dashoffset',o.L))};
+}, "平滑的分布对比 · 多组连续变量 · 不受分箱影响的密度");
+
+/* ---- RELATIONSHIP ---- */
+chart('Scatter','散点图','RELATIONSHIP','检验两个连续变量之间的相关性、聚类与离群。',stage=>{
+  const {s,p}=plot(stage);s.appendChild(E('line',{x1:p.l,y1:H-p.b,x2:W-p.r,y2:H-p.b,stroke:C.axis,'stroke-width':1}));s.appendChild(E('line',{x1:p.l,y1:p.t,x2:p.l,y2:H-p.b,stroke:C.axis,'stroke-width':1}));
+  const r=seeded(11),n=26,x=lin(0,1,p.l+6,W-p.r),y=lin(0,1,H-p.b,p.t+4);
+  const dots=rng(n).map(()=>{const xx=r(),yy=clamp(xx*.7+.15+(r()-.5)*.4,0,1);const c=E('circle',{cx:x(xx),cy:y(yy),r:3.4,fill:PAL[0],'fill-opacity':.8});s.appendChild(c);return c;});
+  return {play:()=>dots.forEach((d,i)=>tween(stage,{dur:300,delay:i*22,ease:Ease.outBack,onUpdate:t=>{d.setAttribute('opacity',t);d.setAttribute('r',3.4*Math.max(.01,t));}})),reset:()=>dots.forEach(d=>d.setAttribute('opacity',0))};
+}, "两个连续变量的相关性 · 身高 vs 体重 · 价格 vs 销量");
+chart('Bubble','气泡图','RELATIONSHIP','散点图 + 第三维（气泡大小），同时看三个变量。',stage=>{
+  const {s,p}=plot(stage);s.appendChild(E('line',{x1:p.l,y1:H-p.b,x2:W-p.r,y2:H-p.b,stroke:C.axis,'stroke-width':1}));s.appendChild(E('line',{x1:p.l,y1:p.t,x2:p.l,y2:H-p.b,stroke:C.axis,'stroke-width':1}));
+  const pts=[[.2,.7,10],[.4,.4,18],[.6,.65,8],[.7,.3,14],[.5,.8,6],[.85,.55,12],[.3,.25,9]],x=lin(0,1,p.l+10,W-p.r-6),y=lin(0,1,H-p.b-6,p.t+6);
+  const bubbles=pts.map((q,i)=>{const c=E('circle',{cx:x(q[0]),cy:y(q[1]),r:0,fill:PAL[i%PAL.length],'fill-opacity':.55,stroke:PAL[i%PAL.length],'stroke-width':1.2});s.appendChild(c);return {c,r:q[2]};});
+  return {play:()=>bubbles.forEach((b,i)=>tween(stage,{dur:560,delay:i*60,ease:Ease.outElastic,onUpdate:t=>b.c.setAttribute('r',Math.max(0,b.r*t))})),reset:()=>bubbles.forEach(b=>b.c.setAttribute('r',0))};
+}, "三个变量同时看 · GDP×寿命×人口 · 价格×评分×销量");
+chart('Heatmap','热力图','RELATIONSHIP','用颜色编码矩阵中每个单元的数值，看二维模式与聚集。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const cols=9,rows=5,pad=14,cw=(W-pad*2)/cols,ch=(H-pad*2)/rows,r=seeded(5);
+  const mix=t=>{const a=[20,28,32],b=[70,184,165];return `rgb(${Math.round(lerp(a[0],b[0],t))},${Math.round(lerp(a[1],b[1],t))},${Math.round(lerp(a[2],b[2],t))})`;};
+  const cells=[];for(let ry=0;ry<rows;ry++)for(let cx=0;cx<cols;cx++){const v=clamp(.5+.4*Math.sin(cx*.6+ry*.5)+(r()-.5)*.3,0,1);const rect=E('rect',{x:pad+cw*cx+1,y:pad+ch*ry+1,width:cw-2,height:ch-2,rx:2,fill:mix(v)});s.appendChild(rect);cells.push(rect);}
+  return {play:()=>cells.forEach((c,i)=>tween(stage,{dur:300,delay:(i%cols)*30+Math.floor(i/cols)*40,ease:Ease.outCubic,onUpdate:t=>c.setAttribute('opacity',t)})),reset:()=>cells.forEach(c=>c.setAttribute('opacity',0))};
+}, "二维矩阵的强度 · 星期×时段活跃 · 相关系数矩阵");
+
+/* ---- FLOW & HIERARCHY ---- */
+chart('Sankey','桑基图','FLOW · HIERARCHY','展示流量在节点间的分配与守恒（来源→去向、能量流）。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const pad=14,leftX=pad+8,rightX=W-pad-8,nw=8;
+  const lefts=[{y:24,h:40},{y:74,h:30},{y:112,h:24}],rights=[{y:22,h:34},{y:64,h:30},{y:102,h:34}];
+  lefts.forEach((n,i)=>s.appendChild(E('rect',{x:leftX-nw,y:n.y,width:nw,height:n.h,rx:1,fill:PAL[i%PAL.length]})));
+  rights.forEach((n)=>s.appendChild(E('rect',{x:rightX,y:n.y,width:nw,height:n.h,rx:1,fill:C.cool})));
+  let lo=lefts.map(n=>n.y),ro=rights.map(n=>n.y);const flows=[[0,0,22],[0,1,16],[1,1,14],[1,2,14],[2,2,18],[2,0,6]];
+  const links=flows.map(([li,ri,w])=>{const sy=lo[li],ty=ro[ri];lo[li]+=w;ro[ri]+=w;const mx=(leftX+rightX)/2;const d=`M${leftX} ${sy+w/2} C${mx} ${sy+w/2} ${mx} ${ty+w/2} ${rightX} ${ty+w/2}`;const pa=E('path',{d,fill:'none',stroke:PAL[li%PAL.length],'stroke-width':w,'stroke-opacity':.3});s.appendChild(pa);const L=pa.getTotalLength?pa.getTotalLength():300;pa.setAttribute('stroke-dasharray',L);return {pa,L};});
+  return {play:()=>links.forEach((o,i)=>tween(stage,{dur:700,delay:i*70,ease:Ease.outCubic,onUpdate:t=>o.pa.setAttribute('stroke-dashoffset',o.L*(1-t))})),reset:()=>links.forEach(o=>o.pa.setAttribute('stroke-dashoffset',o.L))};
+}, "来源→去向的流量 · 能量流 · 预算去向 · 用户路径");
+chart('Chord','弦图','FLOW · HIERARCHY','展示实体之间的双向关系强度（迁移、贸易、引用）。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const cx=W/2,cy=H/2+2,R=58,n=5,seg=2*Math.PI/n,gap=.08,segs=[];
+  for(let i=0;i<n;i++){const a0=-Math.PI/2+i*seg+gap,a1=-Math.PI/2+(i+1)*seg-gap;s.appendChild(E('path',{d:arc(cx,cy,R,a0,a1,R-7),fill:PAL[i%PAL.length]}));segs.push((a0+a1)/2);}
+  const chords=[[0,2],[1,3],[0,4],[2,4],[1,2],[3,0]];
+  const ribs=chords.map(([a,b])=>{const pa=segs[a],pb=segs[b],r=R-9,x0=cx+Math.cos(pa)*r,y0=cy+Math.sin(pa)*r,x1=cx+Math.cos(pb)*r,y1=cy+Math.sin(pb)*r;const path=E('path',{d:`M${x0.toFixed(1)} ${y0.toFixed(1)} Q${cx} ${cy} ${x1.toFixed(1)} ${y1.toFixed(1)}`,fill:'none',stroke:PAL[a%PAL.length],'stroke-width':2.4,'stroke-opacity':.4});s.appendChild(path);const L=path.getTotalLength?path.getTotalLength():200;path.setAttribute('stroke-dasharray',L);return {path,L};});
+  return {play:()=>ribs.forEach((o,i)=>tween(stage,{dur:600,delay:i*70,ease:Ease.inOutCubic,onUpdate:t=>o.path.setAttribute('stroke-dashoffset',o.L*(1-t))})),reset:()=>ribs.forEach(o=>o.path.setAttribute('stroke-dashoffset',o.L))};
+}, "实体间的双向关系 · 人口迁移 · 贸易往来 · 引用网络");
+chart('Sunburst','旭日图','FLOW · HIERARCHY','放射状的层级占比图：内环是父级，外环是子级。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const cx=W/2,cy=H/2+2,inner=[{v:3,c:0},{v:2,c:1},{v:3,c:2}],tot=inner.reduce((a,b)=>a+b.v,0),segs=[];let acc=-Math.PI/2;
+  inner.forEach(seg=>{const a0=acc,a1=acc+seg.v/tot*2*Math.PI;acc=a1;segs.push({pa:E('path',{d:'',fill:PAL[seg.c%PAL.length]}),a0,a1,r0:18,r1:38});const kids=seg.v;for(let k=0;k<kids;k++){const b0=a0+(a1-a0)*k/kids,b1=a0+(a1-a0)*(k+1)/kids;segs.push({pa:E('path',{d:'',fill:PAL[seg.c%PAL.length],'fill-opacity':.55}),a0:b0,a1:b1,r0:38,r1:58});}});
+  segs.forEach(g=>s.appendChild(g.pa));
+  const draw=t=>{const end=-Math.PI/2+Math.min(t,.9999)*2*Math.PI;segs.forEach(g=>g.pa.setAttribute('d',end<=g.a0?'':arc(cx,cy,g.r1,g.a0,Math.min(end,g.a1),g.r0)));};draw(1);
+  return {play:()=>tween(stage,{dur:850,ease:Ease.outCubic,onUpdate:draw}),reset:()=>draw(0)};
+}, "放射状的层级占比 · 目录文件结构 · 多级品类占比");
+chart('Waterfall','瀑布图','FLOW · HIERARCHY','拆解一个总量如何被一系列增减累积出来（盈亏构成）。',stage=>{
+  const {s,p}=plot(stage);baseline(s,p);const steps=[{v:40,t:'base'},{v:18,t:'up'},{v:-10,t:'down'},{v:14,t:'up'},{v:-8,t:'down'}],y0=H-p.b,max=70,n=steps.length,gw=(W-p.l-p.r)/n,bw=gw*0.56;let cum=0;const bars=[];
+  steps.forEach((st,i)=>{const start=st.t==='base'?0:cum,end=st.t==='base'?st.v:cum+st.v,lo=Math.min(start,end),hi=Math.max(start,end),yTop=y0-(hi/max)*(y0-p.t),h=((hi-lo)/max)*(y0-p.t),col=st.t==='base'?C.cool:st.v>=0?C.teal:C.red,bx=p.l+gw*i+(gw-bw)/2;const r=E('rect',{x:bx,y:yTop,width:bw,height:h,rx:1.5,fill:col});s.appendChild(r);bars.push({r,yTop,h});cum=end;});
+  const reset=()=>bars.forEach(b=>{b.r.setAttribute('y',y0);b.r.setAttribute('height',0);});
+  const play=()=>bars.forEach((b,i)=>tween(stage,{dur:420,delay:i*120,ease:Ease.outCubic,onUpdate:t=>{b.r.setAttribute('height',b.h*t);b.r.setAttribute('y',b.yTop+b.h*(1-t));}}));
+  return {play,reset};
+}, "总量的增减拆解 · 利润构成 · 现金流变动 · 库存进出");
+
+/* ---- RADIAL · KPI ---- */
+chart('Gauge','仪表盘','RADIAL · KPI','单一关键指标相对量程的位置，仪表风格、直观。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const cx=W/2,cy=H/2+24,R=56,a0=Math.PI,a1=2*Math.PI,val=0.7;
+  s.appendChild(E('path',{d:arc(cx,cy,R,a0,a1,R-12),fill:C.surf}));
+  const arcEl=E('path',{d:'',fill:PAL[0]});s.appendChild(arcEl);
+  const needle=E('line',{x1:cx,y1:cy,x2:cx,y2:cy-R+16,stroke:C.amber,'stroke-width':3,'stroke-linecap':'round'});s.appendChild(needle);
+  s.appendChild(E('circle',{cx,cy,r:5,fill:C.amber}));
+  const lab=E('text',{x:cx,y:cy-14,'text-anchor':'middle',fill:C.txt,'font-family':MONO,'font-size':18,'font-weight':700});lab.textContent='0';s.appendChild(lab);
+  const set=t=>{const a=a0+(a1-a0)*val*t;arcEl.setAttribute('d',a<=a0+0.001?'':arc(cx,cy,R,a0,a,R-12));needle.setAttribute('x2',cx+Math.cos(a)*(R-16));needle.setAttribute('y2',cy+Math.sin(a)*(R-16));lab.textContent=Math.round(val*t*100);};set(1);
+  return {play:()=>tween(stage,{dur:900,ease:Ease.outBack,onUpdate:set}),reset:()=>set(0)};
+}, "单指标在量程中的位置 · CPU 占用 · 转速 · 健康评分");
+chart('Radial Bar','径向条形','RADIAL · KPI','把多条进度环叠成同心圆，紧凑展示几个比例。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const cx=W/2,cy=H/2+2,vals=[.82,.64,.45],radii=[54,40,26];
+  const rings=vals.map((v,i)=>{s.appendChild(E('circle',{cx,cy,r:radii[i],fill:'none',stroke:C.surf,'stroke-width':8}));const circ=2*Math.PI*radii[i];const arcEl=E('circle',{cx,cy,r:radii[i],fill:'none',stroke:PAL[i],'stroke-width':8,'stroke-linecap':'round','stroke-dasharray':circ,'stroke-dashoffset':circ*(1-v),transform:`rotate(-90 ${cx} ${cy})`});s.appendChild(arcEl);return {arcEl,circ,v};});
+  return {play:()=>rings.forEach((o,i)=>tween(stage,{dur:900,delay:i*80,ease:Ease.outCubic,onUpdate:t=>o.arcEl.setAttribute('stroke-dashoffset',o.circ*(1-o.v*t))})),reset:()=>rings.forEach(o=>o.arcEl.setAttribute('stroke-dashoffset',o.circ))};
+}, "几个比例的紧凑对比 · 多项目标完成度 · 多渠道达成率");
+chart('Progress Ring','进度环','RADIAL · KPI','单值完成度，中心放百分比 —— 最常见的 KPI 圆环。',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const cx=W/2,cy=H/2+2,r=48,circ=2*Math.PI*r,val=0.73;
+  s.appendChild(E('circle',{cx,cy,r,fill:'none',stroke:C.surf,'stroke-width':10}));
+  const arcEl=E('circle',{cx,cy,r,fill:'none',stroke:PAL[0],'stroke-width':10,'stroke-linecap':'round','stroke-dasharray':circ,'stroke-dashoffset':circ*(1-val),transform:`rotate(-90 ${cx} ${cy})`});s.appendChild(arcEl);
+  const lab=E('text',{x:cx,y:cy+1,'text-anchor':'middle','dominant-baseline':'middle',fill:C.txt,'font-family':MONO,'font-size':22,'font-weight':700});lab.textContent=Math.round(val*100)+'%';s.appendChild(lab);
+  return {play:()=>tween(stage,{dur:1000,ease:Ease.outCubic,onUpdate:t=>{arcEl.setAttribute('stroke-dashoffset',circ*(1-val*t));lab.textContent=Math.round(val*t*100)+'%';}}),reset:()=>{arcEl.setAttribute('stroke-dashoffset',circ);lab.textContent='0%';}};
+}, "单值完成度 KPI · 目标进度 · 任务完成率 · 存储已用");
+
+/* ============================================================
+   SECTION 02 — MOTION TYPES
+   ============================================================ */
+function entryBars(stage){
+  const s=SVG(W,H);stage.appendChild(s);const pl=24,pr=24,pt=20,pb=20,d=[40,64,48,72,56],max=80,y0=H-pb,n=d.length,gw=(W-pl-pr)/n,bw=gw*0.56;
+  s.appendChild(E('line',{x1:pl,y1:y0,x2:W-pr,y2:y0,stroke:C.axis,'stroke-width':1}));
+  const bars=d.map((v,i)=>{const bx=pl+gw*i+(gw-bw)/2;const r=E('rect',{x:bx,width:bw,rx:2,fill:PAL[0]});s.appendChild(r);return {r,v,bx,h:(v/max)*(y0-pt)};});
+  return {s,bars,y0,pt};
+}
+function easingCard(easeFn){return stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const bx=18,by=16,bw=118,bh=H-32;
+  s.appendChild(E('rect',{x:bx,y:by,width:bw,height:bh,fill:'none',stroke:C.grid,'stroke-width':1,rx:4}));
+  s.appendChild(E('line',{x1:bx,y1:by+bh,x2:bx+bw,y2:by+bh,stroke:C.line,'stroke-width':1}));
+  const N=60,pts=[];for(let k=0;k<=N;k++){const t=k/N,v=easeFn(t);pts.push([bx+bw*t,by+bh-bh*v]);}
+  const curve=E('path',{d:'M'+pts.map(q=>q[0].toFixed(1)+' '+clamp(q[1],by-12,by+bh+12).toFixed(1)).join(' L'),fill:'none',stroke:C.teal,'stroke-width':2});s.appendChild(curve);
+  const L=curve.getTotalLength?curve.getTotalLength():200;curve.setAttribute('stroke-dasharray',L);
+  const tracer=E('circle',{r:3.5,fill:C.amber});s.appendChild(tracer);
+  const rx=172,rw=24,ry=16,th=H-32;s.appendChild(E('rect',{x:rx,y:ry,width:rw,height:th,fill:C.surf,rx:4}));
+  const fill=E('rect',{x:rx,y:ry+th,width:rw,height:0,fill:PAL[0],rx:4});s.appendChild(fill);
+  const setT=t=>{const v=easeFn(t);tracer.setAttribute('cx',bx+bw*t);tracer.setAttribute('cy',clamp(by+bh-bh*v,by-12,by+bh+12));const vc=clamp(v,-.15,1.15),h=Math.max(0,th*vc);fill.setAttribute('height',h);fill.setAttribute('y',ry+th-h);};setT(1);
+  return {play:()=>{tween(stage,{dur:200,onUpdate:p=>curve.setAttribute('stroke-dashoffset',L*(1-p))});tracer.setAttribute('opacity',1);tween(stage,{dur:1400,ease:Ease.linear,onUpdate:setT});},reset:()=>{curve.setAttribute('stroke-dashoffset',L);tracer.setAttribute('opacity',0);fill.setAttribute('height',0);fill.setAttribute('y',ry+th);}};
+};}
+
+/* ---- ENTRY ---- */
+motion('Grow from Baseline','由基线生长','ENTRY','bars rise · ease-out',stage=>{
+  const {bars,y0}=entryBars(stage);bars.forEach(b=>{b.r.setAttribute('y',y0-b.h);b.r.setAttribute('height',b.h);});
+  const set=(b,t)=>{b.r.setAttribute('y',y0-b.h*t);b.r.setAttribute('height',b.h*t);};
+  return {play:()=>bars.forEach(b=>tween(stage,{dur:700,ease:Ease.outCubic,onUpdate:t=>set(b,t)})),reset:()=>bars.forEach(b=>set(b,0))};
+}, "柱状/条形图入场 · 计数对比的揭示 · 排行榜首屏");
+motion('Wipe Reveal','擦除显现','ENTRY','clip sweep · L→R',stage=>{
+  const {s,bars,y0}=entryBars(stage);bars.forEach(b=>{b.r.setAttribute('y',y0-b.h);b.r.setAttribute('height',b.h);});
+  const id=uid();const clip=E('clipPath',{id},E('rect',{x:0,y:0,width:W,height:H}));const cr=clip.firstChild;s.appendChild(E('defs',{},clip));
+  bars.forEach(b=>b.r.setAttribute('clip-path',`url(#${id})`));
+  return {play:()=>tween(stage,{dur:750,ease:Ease.inOutCubic,onUpdate:t=>cr.setAttribute('width',W*t)}),reset:()=>cr.setAttribute('width',0)};
+}, "时间序列沿时间轴揭示 · 面积图入场 · 趋势按时间推进");
+motion('Fade & Rise','淡入上移','ENTRY','translate + opacity',stage=>{
+  const {bars,y0}=entryBars(stage);bars.forEach(b=>{b.r.setAttribute('y',y0-b.h);b.r.setAttribute('height',b.h);});
+  const set=(b,t)=>{b.r.style.opacity=t;b.r.style.transform=`translateY(${(1-t)*16}px)`;};
+  return {play:()=>bars.forEach((b,i)=>tween(stage,{dur:600,delay:i*40,ease:Ease.outCubic,onUpdate:t=>set(b,t)})),reset:()=>bars.forEach(b=>set(b,0))};
+}, "卡片/列表项入场 · 仪表盘指标逐个浮现 · 信息流加载");
+motion('Draw-on (Trace)','描线绘制','ENTRY','stroke-dashoffset',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const pl=22,pr=22,d=[24,36,30,48,42,58,50,66],max=72,x=lin(0,d.length-1,pl,W-pr),y=lin(0,max,H-20,20);
+  const pa=E('path',{d:d.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' '),fill:'none',stroke:PAL[0],'stroke-width':2.6,'stroke-linejoin':'round','stroke-linecap':'round'});s.appendChild(pa);const L=pa.getTotalLength?pa.getTotalLength():400;pa.setAttribute('stroke-dasharray',L);
+  const dot=E('circle',{r:4,fill:PAL[0]});s.appendChild(dot);
+  return {play:()=>tween(stage,{dur:1100,ease:Ease.inOutCubic,onUpdate:t=>{pa.setAttribute('stroke-dashoffset',L*(1-t));const pt=pa.getPointAtLength(L*t);dot.setAttribute('cx',pt.x);dot.setAttribute('cy',pt.y);dot.setAttribute('opacity',1);}}),reset:()=>{pa.setAttribute('stroke-dashoffset',L);dot.setAttribute('opacity',0);}};
+}, "折线/趋势线绘制入场 · 路线动画 · 签名/笔迹揭示");
+motion('Radial Sweep','径向扫描','ENTRY','arc 0 → 360°',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const cx=W/2,cy=H/2,R=54,r0=30;
+  s.appendChild(E('circle',{cx,cy,r:(R+r0)/2,fill:'none',stroke:C.surf,'stroke-width':R-r0}));
+  const arcEl=E('path',{d:'',fill:PAL[0]});s.appendChild(arcEl);
+  const draw=t=>{t=Math.min(t,.9999);arcEl.setAttribute('d',t<=0?'':arc(cx,cy,R,-Math.PI/2,-Math.PI/2+t*2*Math.PI,r0));};draw(1);
+  return {play:()=>tween(stage,{dur:900,ease:Ease.outCubic,onUpdate:draw}),reset:()=>draw(0)};
+}, "环形/饼图入场 · 进度环填充 · 占比的扇形揭示");
+motion('Stagger / Cascade','错峰级联','ENTRY','delay × index',stage=>{
+  const {bars,y0}=entryBars(stage);bars.forEach(b=>{b.r.setAttribute('y',y0-b.h);b.r.setAttribute('height',b.h);});
+  const set=(b,t)=>{b.r.setAttribute('y',y0-b.h*t);b.r.setAttribute('height',b.h*t);};
+  return {play:()=>bars.forEach((b,i)=>tween(stage,{dur:520,delay:i*130,ease:Ease.outCubic,onUpdate:t=>set(b,t)})),reset:()=>bars.forEach(b=>set(b,0))};
+}, "多条/多类元素的序列入场 · 排行榜逐条 · 引导节奏感");
+motion('Pop / Scale-in','弹出缩放','ENTRY','scale · back-out',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const xs=[40,90,140,190,240];
+  const dots=xs.map((cx,i)=>{const c=E('circle',{cx,cy:H/2,r:15,fill:PAL[i%PAL.length],'fill-opacity':.9});s.appendChild(c);return c;});
+  return {play:()=>dots.forEach((d,i)=>tween(stage,{dur:560,delay:i*80,ease:Ease.outBack,onUpdate:t=>{d.style.transformBox='fill-box';d.style.transformOrigin='center';d.style.transform=`scale(${Math.max(0,t)})`;}})),reset:()=>dots.forEach(d=>{d.style.transformBox='fill-box';d.style.transformOrigin='center';d.style.transform='scale(0)';})};
+}, "单点/标记弹出强调 · 关键节点高亮 · 通知徽标出现");
+
+/* ---- EASING (timing curves) ---- */
+motion('Linear','线性','EASING','cubic · linear',easingCard(Ease.linear), "匀速进度/滚动 · 跑马灯 · 持续旋转 · 时间刻度");
+motion('Ease-out','缓出','EASING','decelerate · 默认',easingCard(Ease.outCubic), "绝大多数数据入场 · 柱/线/数字揭示 · 通用默认动效");
+motion('Ease-in-out','缓入缓出','EASING','S-curve · 对称',easingCard(Ease.inOutCubic), "A⇄B 数据过渡 · 元素移动换位 · 数值平滑切换");
+motion('Anticipation','预备','EASING','back-in · 先收后放',easingCard(Ease.inBack), "强调元素出场前的蓄势 · 按钮按下 · 卡片弹射");
+motion('Overshoot','过冲','EASING','back-out · 冲过回落',easingCard(Ease.outBack), "活泼的入场强调 · KPI 数字蹦出 · 气泡/标记落定");
+motion('Elastic','弹性','EASING','spring · 振荡',easingCard(Ease.outElastic), "俏皮的提示/玩具感 · 点赞/收藏反馈 · 吉祥物动效");
+motion('Bounce','弹跳','EASING','bounce · 落地反弹',easingCard(Ease.outBounce), "下落落地的物理感 · 提示掉落 · 游戏化奖励出现");
+
+/* ---- TRANSITION (data change) ---- */
+motion('Count-up','数字滚动','TRANSITION','value interpolation',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const target=2847;
+  const lab=E('text',{x:W/2,y:H/2-4,'text-anchor':'middle','dominant-baseline':'middle',fill:C.txt,'font-family':MONO,'font-size':40,'font-weight':700});lab.textContent=target.toLocaleString();s.appendChild(lab);
+  const sub=E('text',{x:W/2,y:H/2+26,'text-anchor':'middle',fill:C.faint,'font-family':MONO,'font-size':11,'letter-spacing':'2'});sub.textContent='SIGNUPS';s.appendChild(sub);
+  return {play:()=>tween(stage,{dur:1300,ease:Ease.outCubic,onUpdate:t=>lab.textContent=Math.round(target*t).toLocaleString()}),reset:()=>lab.textContent='0'};
+}, "单个大数字 KPI · 注册量 · 营收 · 在线人数");
+motion('Data Update','数据更新','TRANSITION','A ⇄ B · 每次重播',stage=>{
+  const {bars,y0}=entryBars(stage);const A=[40,64,48,72,56].map(v=>(v/80)*(y0-20)),B=[68,36,60,44,72].map(v=>(v/80)*(y0-20));
+  bars.forEach((b,i)=>{b.r.setAttribute('y',y0-A[i]);b.r.setAttribute('height',A[i]);});let toB=true;
+  const go=()=>{const from=toB?A:B,to=toB?B:A;toB=!toB;bars.forEach((b,i)=>tween(stage,{dur:700,ease:Ease.inOutCubic,onUpdate:t=>{const h=lerp(from[i],to[i],t);b.r.setAttribute('y',y0-h);b.r.setAttribute('height',h);}}));};
+  return {play:go,reset:()=>{bars.forEach((b,i)=>{b.r.setAttribute('y',y0-A[i]);b.r.setAttribute('height',A[i]);});toB=true;}};
+}, "新旧数据切换 · 期初⇄期末对比 · 实时刷新的指标");
+motion('Sort / Reorder','排序换位','TRANSITION','position + value',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const pl=24,pr=24,pt=20,pb=20,y0=H-pb,vals=[40,72,30,58,48],max=80,n=vals.length,gw=(W-pl-pr)/n,bw=gw*0.56;
+  s.appendChild(E('line',{x1:pl,y1:y0,x2:W-pr,y2:y0,stroke:C.axis,'stroke-width':1}));
+  const bars=vals.map((v,i)=>{const r=E('rect',{width:bw,rx:2,fill:PAL[i%PAL.length]});s.appendChild(r);return {r,v};});
+  const place=(b,slot)=>{const x=pl+gw*slot+(gw-bw)/2,h=(b.v/max)*(y0-pt);b.r.setAttribute('x',x);b.r.setAttribute('y',y0-h);b.r.setAttribute('height',h);};
+  bars.forEach((b,i)=>place(b,i));let sorted=false;
+  const reorder=()=>{const order=[...bars].sort((a,c)=>sorted?a.v-c.v:c.v-a.v);sorted=!sorted;order.forEach((b,slot)=>{const tx=pl+gw*slot+(gw-bw)/2,fx=parseFloat(b.r.getAttribute('x'));tween(stage,{dur:700,ease:Ease.inOutCubic,onUpdate:t=>b.r.setAttribute('x',lerp(fx,tx,t))});});};
+  return {play:reorder,reset:()=>{bars.forEach((b,i)=>place(b,i));sorted=false;}};
+}, "随时间变化的排名 · 柱状竞赛 · 榜单重排");
+motion('Morph','形态渐变','TRANSITION','point interpolation',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const pl=20,pr=20,top=24,bot=H-24,N=48;
+  const A=[],B=[];for(let k=0;k<=N;k++){const x=k/N,bi=Math.floor(x*6);A.push([0.5,0.85,0.4,0.7,0.55,0.9][bi%6]);B.push(0.55+0.32*Math.sin(x*Math.PI*3));}
+  const xs=k=>pl+(W-pl-pr)*k/N,ys=v=>bot-(bot-top)*v;
+  const pathFrom=vals=>{let d='M'+xs(0)+' '+bot;for(let k=0;k<=N;k++)d+=' L'+xs(k).toFixed(1)+' '+ys(vals[k]).toFixed(1);return d+' L'+xs(N)+' '+bot+' Z';};
+  const pa=E('path',{d:pathFrom(A),fill:PAL[0],'fill-opacity':.85});s.appendChild(pa);let toB=true;
+  const go=()=>{const from=toB?A:B,to=toB?B:A;toB=!toB;tween(stage,{dur:900,ease:Ease.inOutCubic,onUpdate:t=>pa.setAttribute('d',pathFrom(from.map((v,i)=>lerp(v,to[i],t))))});};
+  return {play:go,reset:()=>{pa.setAttribute('d',pathFrom(A));toB=true;}};
+}, "分布形态的演变 · 不同情景的曲线切换 · 图表类型互变");
+
+/* ---- AMBIENT (continuous loops) ---- */
+motion('Pulse / Breathing','脉冲呼吸','AMBIENT','loop · scale + opacity',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const cx=W/2,cy=H/2;
+  const ring=E('circle',{cx,cy,r:30,fill:'none',stroke:PAL[0],'stroke-width':2});s.appendChild(ring);
+  const core=E('circle',{cx,cy,r:14,fill:PAL[0]});s.appendChild(core);
+  const loop=()=>tween(stage,{dur:1600,ease:Ease.inOutCubic,onUpdate:t=>{const k=Math.sin(t*Math.PI);ring.setAttribute('r',30+k*22);ring.setAttribute('stroke-opacity',1-k);core.setAttribute('r',14+k*3);},onDone:()=>{if(!REDUCE)loop();}});
+  return {play:loop,reset:()=>{}};
+}, "实时/在线状态指示 · 直播红点 · 录制中 · 心跳信号");
+motion('Flow (Marching)','流动','AMBIENT','dash offset · loop',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const pl=20,pr=20;const d=`M${pl} ${H*0.7} C${W*0.35} ${H*0.7} ${W*0.3} ${H*0.3} ${W*0.6} ${H*0.3} S${W-pr} ${H*0.6} ${W-pr} ${H*0.55}`;
+  s.appendChild(E('path',{d,fill:'none',stroke:C.surf,'stroke-width':10,'stroke-linecap':'round'}));
+  const flow=E('path',{d,fill:'none',stroke:PAL[0],'stroke-width':10,'stroke-linecap':'round','stroke-dasharray':'2 22'});s.appendChild(flow);
+  const loop=()=>tween(stage,{dur:1400,ease:Ease.linear,onUpdate:t=>flow.setAttribute('stroke-dashoffset',-t*24),onDone:()=>{if(!REDUCE)loop();}});
+  return {play:loop,reset:()=>flow.setAttribute('stroke-dashoffset',0)};
+}, "管线/流量的流向 · 数据管道运行 · 网络/物流路径");
+motion('Shimmer (Loading)','骨架微光','AMBIENT','gradient sweep · loop',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const id=uid();
+  const s0=E('stop',{offset:0,'stop-color':C.surf}),sm=E('stop',{offset:.5,'stop-color':'#2c323c'}),s1=E('stop',{offset:1,'stop-color':C.surf});
+  const grad=E('linearGradient',{id,x1:0,y1:0,x2:1,y2:0},[s0,sm,s1]);s.appendChild(E('defs',{},grad));
+  [[26,.7],[54,.9],[82,.55],[110,.8]].forEach(([y,w])=>s.appendChild(E('rect',{x:24,y,width:w*(W-48),height:14,rx:7,fill:`url(#${id})`})));
+  const loop=()=>tween(stage,{dur:1300,ease:Ease.linear,onUpdate:t=>{const c=lerp(-.3,1.3,t);s0.setAttribute('offset',clamp(c-.3,0,1));sm.setAttribute('offset',clamp(c,0,1));s1.setAttribute('offset',clamp(c+.3,0,1));},onDone:()=>{if(!REDUCE)loop();}});
+  return {play:loop,reset:()=>{}};
+}, "数据加载中的占位 · 骨架屏 · 列表/卡片拉取等待");
+
+/* ---- FOCUS (interaction-driven) ---- */
+motion('Hover Highlight','悬停聚焦','FOCUS','dim siblings · hover',stage=>{
+  const {bars,y0}=entryBars(stage);bars.forEach(b=>{b.r.setAttribute('y',y0-b.h);b.r.setAttribute('height',b.h);b.r.style.transition='opacity .25s';});
+  const focus=idx=>bars.forEach((b,i)=>b.r.style.opacity=idx==null?1:(i===idx?1:0.2));
+  bars.forEach((b,i)=>{b.r.addEventListener('mouseenter',()=>focus(i));b.r.addEventListener('mouseleave',()=>focus(null));});
+  return {play:()=>{let i=0,k=0;focus(0);stage.__int=setInterval(()=>{i=(i+1)%bars.length;focus(i);if(++k>=bars.length){clearInterval(stage.__int);stage.__int=null;setTimeout(()=>focus(null),500);}},650);},reset:()=>focus(null)};
+}, "鼠标悬停聚焦单项 · 高亮选中柱 · 弱化其余系列");
+motion('Tooltip Reveal','提示浮现','FOCUS','scale + fade · on point',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const pl=20,pr=20,d=[30,46,38,58,50,66],max=72,x=lin(0,d.length-1,pl,W-pr),y=lin(0,max,H-24,24);
+  s.appendChild(E('path',{d:d.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' '),fill:'none',stroke:PAL[0],'stroke-width':2.4,'stroke-linejoin':'round'}));
+  const pts=d.map((v,i)=>[x(i),y(v)]);pts.forEach(q=>s.appendChild(E('circle',{cx:q[0],cy:q[1],r:3,fill:C.bg,stroke:PAL[0],'stroke-width':1.6})));
+  const idx=3,px=pts[idx][0],py=pts[idx][1];s.appendChild(E('circle',{cx:px,cy:py,r:5,fill:PAL[0]}));
+  const tip=E('g',{}),tw=58,th=26;
+  tip.appendChild(E('rect',{x:px-tw/2,y:py-th-12,width:tw,height:th,rx:5,fill:'#22272f',stroke:C.line,'stroke-width':1}));
+  const txt=E('text',{x:px,y:py-th-12+17,'text-anchor':'middle',fill:C.txt,'font-family':MONO,'font-size':12,'font-weight':700});txt.textContent='58 ▲';tip.appendChild(txt);
+  s.appendChild(tip);tip.style.transformBox='fill-box';tip.style.transformOrigin='center bottom';
+  return {play:()=>tween(stage,{dur:420,ease:Ease.outBack,onUpdate:t=>{tip.style.opacity=clamp(t,0,1);tip.style.transform=`scale(${0.7+0.3*Math.min(t,1)})`;}}),reset:()=>{tip.style.opacity=0;tip.style.transform='scale(0.7)';}};
+}, "悬停数据点看具体值 · 折线上的提示气泡 · 精确读数");
+motion('Scrub / Playhead','拖动播放头','FOCUS','interactive · drag',stage=>{
+  const s=SVG(W,H);stage.appendChild(s);const pl=20,pr=20,d=[28,40,34,52,46,60,54,66,58,70],max=74,x=lin(0,d.length-1,pl,W-pr),y=lin(0,max,H-26,22);
+  const pts=d.map((v,i)=>[x(i),y(v)]);
+  s.appendChild(E('path',{d:pts.map((q,i)=>(i?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' '),fill:'none',stroke:PAL[0],'stroke-width':2.2,'stroke-linejoin':'round'}));
+  const head=E('line',{x1:pl,y1:18,x2:pl,y2:H-18,stroke:C.amber,'stroke-width':1.5});s.appendChild(head);
+  const dot=E('circle',{r:4.5,fill:C.amber});s.appendChild(dot);
+  const lab=E('text',{x:pl,y:14,'text-anchor':'middle',fill:C.amber,'font-family':MONO,'font-size':11,'font-weight':700});s.appendChild(lab);
+  const move=vbx=>{const t=clamp((vbx-pl)/(W-pl-pr),0,1),fi=t*(d.length-1),i0=Math.floor(fi),i1=Math.min(d.length-1,i0+1),v=lerp(d[i0],d[i1],fi-i0),yy=lerp(pts[i0][1],pts[i1][1],fi-i0),hx=pl+t*(W-pl-pr);head.setAttribute('x1',hx);head.setAttribute('x2',hx);dot.setAttribute('cx',hx);dot.setAttribute('cy',yy);lab.setAttribute('x',clamp(hx,30,W-30));lab.textContent=Math.round(v);};
+  const toVB=e=>{const r=s.getBoundingClientRect(),cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;return cx/r.width*W;};
+  let drag=false;
+  s.addEventListener('mousedown',e=>{drag=true;e.stopPropagation();move(toVB(e));});
+  s.addEventListener('mousemove',e=>{if(drag)move(toVB(e));});
+  window.addEventListener('mouseup',()=>drag=false);
+  s.addEventListener('touchstart',e=>{drag=true;e.stopPropagation();move(toVB(e));},{passive:true});
+  s.addEventListener('touchmove',e=>{if(drag)move(toVB(e));},{passive:true});
+  s.style.cursor='ew-resize';move(pl);
+  return {play:()=>tween(stage,{dur:1700,ease:Ease.inOutCubic,onUpdate:p=>move(pl+p*(W-pl-pr))}),reset:()=>move(pl)};
+}, "时间轴拖动播放头 · 视频/动画时间线 · 历史回放刷取");
+
+/* ============================================================
+   BOOT — group by category, mount, wire interactions
+   ============================================================ */
+(function boot(){
+  const CN_CHART={'COMPARISON':'对比 / 排序','TREND':'趋势 / 时间','PART-TO-WHOLE':'构成 / 占比','DISTRIBUTION':'分布','RELATIONSHIP':'关系 / 相关','FLOW · HIERARCHY':'流向 / 层级','RADIAL · KPI':'径向 / KPI'};
+  const CN_MOTION={'ENTRY':'入场 / 显现','EASING':'缓动曲线 · 节奏','TRANSITION':'数据过渡 / 更新','AMBIENT':'环境 / 持续','FOCUS':'聚焦 / 交互'};
+  function build(list,host,cnMap){
+    const cats=[];list.forEach(d=>{if(!cats.includes(d.cat))cats.push(d.cat);});
+    cats.forEach((cat,ci)=>{
+      const band=document.createElement('div');band.className='cat';
+      band.innerHTML=`<span class="cat-label">${cat}</span><span class="cat-cn">${cnMap[cat]||''}</span><span class="cat-rule"></span>`;
+      host.appendChild(band);
+      const grid=document.createElement('div');grid.className='grid';host.appendChild(grid);
+      list.filter(d=>d.cat===cat).forEach(d=>{d._ci=ci;mountCard(grid,d,host.id==='motion-body'?'motion':'chart');});
+    });
+  }
+  build(Charts,document.getElementById('charts-body'),CN_CHART);
+  build(Motions,document.getElementById('motion-body'),CN_MOTION);
+
+  // play each card once when it scrolls into view
+  if('IntersectionObserver' in window && !REDUCE){
+    const seen=new WeakSet();
+    const io=new IntersectionObserver(ents=>{
+      ents.forEach(e=>{if(e.isIntersecting){const c=cards.find(x=>x.card===e.target);if(c&&!seen.has(e.target)){seen.add(e.target);setTimeout(c.play,80);}io.unobserve(e.target);}});
+    },{threshold:0.3});
+    cards.forEach(c=>io.observe(c.card));
+  }
+
+  const inView=el=>{const r=el.getBoundingClientRect();return r.top<innerHeight&&r.bottom>0;};
+  document.getElementById('replayAll').addEventListener('click',()=>{
+    let n=0;cards.forEach(c=>{if(inView(c.card)){setTimeout(c.play,(n%8)*45);n++;}});
+  });
+})();
+</script>
+</body>
+</html>

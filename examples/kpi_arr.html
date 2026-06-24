@@ -1,0 +1,892 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Annual recurring revenue crossed $4.2M</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0f12; --panel:#14171c; --grid:#222831; --ink:#e8edf2; --muted:#7d8794;
+    --red:#c0171f; --teal:#46b8a5; --amber:#d9933d;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:'Barlow',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;}
+  .wrap{max-width:900px;margin:0 auto;padding:34px 28px 26px;}
+  header h1{font-size:19px;font-weight:600;letter-spacing:.2px;margin:0 0 6px;}
+  header .take{font-size:14px;color:var(--muted);line-height:1.5;margin:0;max-width:64ch;}
+  #stage{margin:26px 0 14px;background:var(--panel);border:1px solid var(--grid);
+    border-radius:12px;padding:18px 20px 10px;cursor:pointer;}
+  svg{display:block;width:100%;height:auto;font-variant-numeric:tabular-nums;}
+  .val{font-variant-numeric:tabular-nums;font-weight:600;}
+  footer{display:flex;flex-wrap:wrap;align-items:center;gap:14px;
+    font-size:12px;color:var(--muted);}
+  button,.ctrl{background:var(--panel);color:var(--ink);border:1px solid var(--grid);
+    border-radius:7px;padding:6px 12px;font:inherit;font-size:12px;cursor:pointer;}
+  button:hover{border-color:var(--muted);}
+  input[type=range]{accent-color:var(--amber);vertical-align:middle;}
+  .src{margin-left:auto;text-align:right;max-width:46ch;line-height:1.4;}
+  .src a{color:var(--muted);}
+  .pill{display:inline-block;padding:2px 8px;border:1px solid var(--grid);border-radius:20px;font-size:11px;}
+  body.light{--bg:#fafaf7;--panel:#ffffff;--grid:#e6e7e2;--ink:#16181d;--muted:#6b7280;}
+  .tools{display:flex;gap:7px;align-items:center;flex:none;}
+  .schemeBtn{width:28px;height:14px;padding:0;border-radius:4px;border:1.5px solid transparent;cursor:pointer;box-shadow:0 0 0 1px var(--grid);}
+  .schemeBtn.on{border-color:var(--ink);}
+  dialog#codeDlg{background:var(--panel);color:var(--ink);border:1px solid var(--grid);border-radius:12px;max-width:90vw;width:760px;padding:0;}
+  dialog#codeDlg .dh{display:flex;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--grid);}
+  dialog#codeDlg pre{margin:0;padding:14px;overflow:auto;max-height:64vh;font:12px/1.5 ui-monospace,SFMono-Regular,monospace;white-space:pre-wrap;word-break:break-all;}
+  dialog::backdrop{background:rgba(0,0,0,.55);}
+</style></head>
+<body><div class="wrap">
+  <header style="display:flex;align-items:flex-start;gap:16px">
+    <div style="flex:1;min-width:0">
+      <h1>Annual recurring revenue crossed $4.2M</h1>
+      <p class="take">ARR has grown 14x in four years, compounding faster every quarter.</p>
+    </div>
+    <div class="tools">
+      <button class="schemeBtn" data-s="0" title="Aqua"></button>
+      <button class="schemeBtn" data-s="1" title="Indigo"></button>
+      <button class="schemeBtn" data-s="2" title="Ember"></button>
+      <button id="mode" title="dark / light">&#9790;</button>
+    </div>
+  </header>
+  <main id="stage" title="click to replay"><div id="chart-root"></div></main>
+  <footer>
+    <button id="replay">&#8635; Replay</button>
+    <button id="slow" aria-pressed="false">&#128034; Slow-mo</button>
+    <label class="ctrl">Speed <input id="speed" type="range" min="0.25" max="2" step="0.05" value="1"></label>
+    <button id="freeze">&#9167; Freeze final</button>
+    <button id="code">&lt;/&gt; Code</button>
+    <span class="src">Company financials — FY2026</span>
+  </footer>
+  <dialog id="codeDlg">
+    <div class="dh"><strong style="font-size:12px">Source &mdash; single self-contained file</strong>
+      <button id="codeCopy" style="margin-left:auto">Copy</button><button id="codeClose">Close</button></div>
+    <pre></pre>
+  </dialog>
+</div>
+<script>
+
+const qs = new URLSearchParams(location.search);
+const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches || qs.has('static');
+let   SEEK   = qs.has('t') ? +qs.get('t') : null;
+const Ease = {
+  linear:    t => t,
+  outCubic:  t => 1 - Math.pow(1 - t, 3),
+  inCubic:   t => t*t*t,
+  inOutCubic:t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2,
+  outQuint:  t => 1 - Math.pow(1 - t, 5),
+  outBack:   t => { const c1=1.70158,c3=c1+1; return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2); },
+};
+const _run = new WeakMap();
+function killAnims(stage){ const a=_run.get(stage); if(a){a.forEach(id=>cancelAnimationFrame(id)); _run.set(stage,[]);} }
+function tween(stage, {dur, ease=Ease.outCubic, onUpdate, onDone}){
+  if (SEEK !== null){ const t=Math.max(0,Math.min(1,SEEK/dur)); onUpdate(ease(t)); if(SEEK>=dur&&onDone)onDone(); return; }
+  if (REDUCE){ onUpdate(1); if(onDone)onDone(); return; }
+  const list=_run.get(stage)||[]; _run.set(stage,list); let start=null;
+  const step=ts=>{ if(start===null)start=ts; const t=Math.min(1,(ts-start)/dur);
+    onUpdate(ease(t)); if(t<1) list.push(requestAnimationFrame(step)); else if(onDone) onDone(); };
+  list.push(requestAnimationFrame(step));
+}
+// per-mark sub-clock: map global t -> local 0..1 over [start,start+dur] (fractions)
+const sub = (t,start,dur) => Math.max(0, Math.min(1,(t-start)/dur));
+
+/* =====================================================================
+   RAIL — shared safety rails. EVERY builder routes its labels/axis through
+   these so a chart type can't be added without inheriting the de-collision,
+   honest-direction, gutter, and inset guarantees.
+   ===================================================================== */
+const RAIL = (function(){
+  const INSET = 16;                          // min inset on all four sides of the viewBox
+  function textW(s, fs){ return (''+s).length * fs * 0.58; }   // dependency-free width estimate
+  function reserveGutter(labels, fs, pad){
+    fs=fs||14; pad=pad==null?16:pad; let w=0;
+    (labels||[]).forEach(l=>{ w=Math.max(w, textW(l,fs)); });
+    return Math.max(INSET+8, Math.ceil(w + pad + INSET));
+  }
+  function placeValueLabel(xEnd, x0, opts){
+    opts=opts||{}; const pad=opts.pad==null?8:opts.pad;
+    const neg = xEnd < x0;
+    if(!neg) return { x:xEnd+pad, anchor:'start' };
+    const barW=Math.abs(x0-xEnd);
+    if(opts.textW!=null && opts.textW+pad*2 < barW) return { x:x0-pad, anchor:'end' };
+    return { x:x0+pad, anchor:'start' };
+  }
+  function orderTimeAxis(items, xLeft, xRight){
+    const s=items.map((d,i)=>({...d,_orig:i})).sort((a,b)=>a.t-b.t), n=s.length;
+    s.forEach((d,k)=>{ d._ti=k; d.x = n>1 ? xLeft+(k/(n-1))*(xRight-xLeft) : xLeft; });
+    return s;
+  }
+  function orderPair(startVal, endVal, xLeft, xRight){
+    const down=endVal<startVal;
+    const deltaPct = startVal!==0 ? Math.round((endVal-startVal)/Math.abs(startVal)*100) : 0;
+    const arrow = down?'↓':(endVal>startVal?'↑':'→'), sign = deltaPct>0?'+':'';
+    return { xStart:xLeft, xEnd:xRight, down, deltaPct, deltaLabel:arrow+' '+sign+deltaPct+'%' };
+  }
+  function noOverlap(boxes, lineH){
+    lineH=lineH||18;
+    const o=boxes.map((b,i)=>({i,y:b.y,h:b.h||lineH})).sort((a,b)=>a.y-b.y);
+    for(let k=1;k<o.length;k++){ const m=o[k-1].y+Math.max(o[k-1].h,lineH); if(o[k].y<m)o[k].y=m; }
+    o.forEach(x=>{ boxes[x.i].y=x.y; }); return boxes;
+  }
+  function externalize(segLenPx, label, fs){ return textW(label,fs||12)+10 > segLenPx; }
+  return { INSET, textW, reserveGutter, placeValueLabel, orderTimeAxis, orderPair, noOverlap, externalize };
+})();
+
+
+const SPEC = {"chart": "kpi", "title": "Annual recurring revenue crossed $4.2M", "takeaway": "ARR has grown 14x in four years, compounding faster every quarter.", "source": "Company financials \u2014 FY2026", "unit": "", "value_format": "0.0", "duration": 1800, "value": 4.2, "kpi_label": "$M annual recurring revenue", "sparkline": [0.3, 0.6, 0.9, 1.4, 2.0, 2.7, 3.3, 4.2]};
+const NS='http://www.w3.org/2000/svg';
+const root=document.getElementById('chart-root');
+let CHART = (SPEC.chart||'bar'); if(CHART==='hbar') CHART='bar';
+
+const C = {protagonist:'var(--amber)', good:'var(--teal)', up:'var(--teal)',
+           bad:'var(--red)', down:'var(--red)', context:'var(--muted)'};
+
+/* ---- accent resolution: lite spec uses `focus` (a label) or per-row `role`.
+   If neither, the largest-MAGNITUDE item is the protagonist. ACCENT(label,value)
+   answers "is this the focus item?". roleColor() honours explicit up/down/good/bad. */
+function _rowsForAccent(){
+  if(Array.isArray(SPEC.rows)) return SPEC.rows.map(r=>({label:r.label, mag:Math.abs(+r.value||0)}));
+  if(Array.isArray(SPEC.series)) return SPEC.series.map(s=>{
+    let m=0; (s.points||[]).forEach(p=>{m=Math.max(m,Math.abs(+p[1]||0));});
+    (s.values||[]).forEach(v=>{m=Math.max(m,Math.abs(+v||0));});
+    return {label:s.label, mag:m};
+  });
+  if(Array.isArray(SPEC.points)) return SPEC.points.map(p=>({label:p.label, mag:Math.abs(+(p.size||p.y)||0)}));
+  return [];
+}
+const _accentLabel = (function(){
+  if(SPEC.focus!=null) return SPEC.focus;
+  // explicit role wins if present
+  const withRole = (SPEC.rows||SPEC.series||SPEC.points||[]).find(o=>{
+    const r=o.role; return r==='protagonist';
+  });
+  if(withRole) return withRole.label;
+  // else largest magnitude
+  const rs=_rowsForAccent(); if(!rs.length) return null;
+  let best=rs[0]; rs.forEach(r=>{ if(r.mag>best.mag) best=r; });
+  return best.label;
+})();
+function isAccent(label, role){
+  if(role==='protagonist') return true;
+  if(_accentLabel!=null && label!=null && label===_accentLabel) return true;
+  return false;
+}
+// colour for a row/series respecting role semantics, then accent, then context.
+function colorFor(o){
+  const role=o.role;
+  if(role==='good'||role==='up') return C.good;
+  if(role==='bad'||role==='down') return C.bad;
+  if(isAccent(o.label, role)) return C.protagonist;
+  if(CHART==='diverging' && typeof o.value==='number')
+    return o.value<0 ? C.down : (o.value>0?C.up:C.context);
+  return C.context;
+}
+function fmt(v){
+  const f=SPEC.value_format||'0';
+  const u=SPEC.unit||'';
+  if(f.indexOf('%')>=0) return (Math.round(v*10)/10)+'%';
+  let s = f.indexOf('.')>=0 ? (+v).toFixed(1) : Math.round(v).toString();
+  if(f[0]==='+' && v>0) s='+'+s;
+  return s + (u && u!=='%' ? '' : (u==='%'?'%':''));
+}
+// value + unit for end/value labels (unit shown unless format already is a %)
+function fmtU(v){
+  const f=SPEC.value_format||'0', u=SPEC.unit||'';
+  let base=fmt(v);
+  if(u && u!=='%' && f.indexOf('%')<0) base = base+u;
+  return base;
+}
+
+/* =====================================================================
+   KPI — one big number 0->value, context sub-label + optional sparkline.
+   ===================================================================== */
+const KPI = (function(){
+  const W=860, H=300, cx=W/2;
+  const val = (typeof SPEC.value==='number') ? SPEC.value
+            : (SPEC.rows && SPEC.rows.length ? +SPEC.rows[0].value : 0);
+  const spark = Array.isArray(SPEC.sparkline) ? SPEC.sparkline
+              : (Array.isArray(SPEC.spark) ? SPEC.spark : null);
+  let numEl;
+  function build(){
+    root.innerHTML='';
+    const svg=document.createElementNS(NS,'svg'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    if(spark && spark.length>1){
+      const sw=320, sh=54, sx=cx-sw/2, sy=44;
+      const lo=Math.min(...spark), hi=Math.max(...spark), rng=(hi-lo)||1;
+      const X=i=>sx+(i/(spark.length-1))*sw, Y=v=>sy+sh-((v-lo)/rng)*sh;
+      const dd=spark.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join(' ');
+      const pa=document.createElementNS(NS,'path');
+      pa.setAttribute('d',dd);pa.setAttribute('fill','none');pa.setAttribute('stroke','var(--muted)');
+      pa.setAttribute('stroke-width','2');pa.setAttribute('stroke-linejoin','round');pa.setAttribute('stroke-linecap','round');
+      pa.id='kspark'; svg.appendChild(pa);
+      const dot=document.createElementNS(NS,'circle');
+      dot.setAttribute('cx',X(spark.length-1));dot.setAttribute('cy',Y(spark[spark.length-1]));dot.setAttribute('r',3.5);
+      dot.setAttribute('fill','var(--amber)'); dot.id='ksparkdot'; svg.appendChild(dot);
+    }
+    numEl=document.createElementNS(NS,'text');
+    numEl.setAttribute('x',cx);numEl.setAttribute('y', spark?168:150);numEl.setAttribute('text-anchor','middle');
+    numEl.setAttribute('fill','var(--amber)');numEl.setAttribute('font-size','96');numEl.setAttribute('font-weight','700');
+    numEl.setAttribute('class','val'); numEl.id='knum'; svg.appendChild(numEl);
+    const subl=document.createElementNS(NS,'text');
+    subl.setAttribute('x',cx);subl.setAttribute('y', spark?210:194);subl.setAttribute('text-anchor','middle');
+    subl.setAttribute('fill','var(--muted)');subl.setAttribute('font-size','17');subl.setAttribute('letter-spacing','.3');
+    subl.textContent=SPEC.kpi_label||SPEC.unit||''; svg.appendChild(subl);
+    root.appendChild(svg);
+  }
+  function render(t){
+    const e=Ease.outQuint(sub(t,0.0,0.85));
+    if(numEl) numEl.textContent=fmt(val*e);
+    const sp=document.getElementById('kspark'), spd=document.getElementById('ksparkdot');
+    if(sp){ const o=Ease.outCubic(sub(t,0.0,0.55)); sp.setAttribute('opacity',o); if(spd)spd.setAttribute('opacity',Ease.outCubic(sub(t,0.5,0.4))); }
+  }
+  return {build,render};
+})();
+
+/* =====================================================================
+   BAR / hbar / diverging — horizontal bars grow from baseline.
+   Accent row lands last + longest; context recedes. RAIL gutter + value labels.
+   ===================================================================== */
+const BAR = (function(){
+  const rows=SPEC.rows||[], n=rows.length;
+  const W=860, rowH=46, padR=70, padT=28, padB=34;
+  const H=padT+padB+Math.max(1,n)*rowH;
+  const padL = Math.max(120, RAIL.reserveGutter(rows.map(r=>r.label), 14, 16));
+  const innerW = W-padL-padR;
+  const _vals=rows.map(r=>+r.value);
+  const _lo=Math.min(0,..._vals), _hi=Math.max(0,..._vals);
+  const _pad=((_hi-_lo)||1)*0.10;
+  const DLO=_lo-(_lo<0?_pad:0), DHI=_hi+(_hi>0?_pad:0);
+  const diverging = (CHART==='diverging');
+  function xOf(v){
+    if(diverging){ return padL + ((v-DLO)/((DHI-DLO)||1))*innerW; }
+    return padL + (Math.max(0,v)/(DHI||1))*innerW;
+  }
+  function xZero(){ return diverging ? xOf(0) : padL; }
+  const accentIdx = rows.findIndex(r=>isAccent(r.label, r.role));
+  function build(){
+    root.innerHTML='';
+    const svg=document.createElementNS(NS,'svg'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    const zx=xZero();
+    const axis=document.createElementNS(NS,'line');
+    axis.setAttribute('x1',zx);axis.setAttribute('x2',zx);axis.setAttribute('y1',padT-6);axis.setAttribute('y2',H-padB+4);
+    axis.setAttribute('stroke','var(--grid)');axis.setAttribute('stroke-width','1.5'); svg.appendChild(axis);
+    if(diverging){
+      const zlab=document.createElementNS(NS,'text');
+      zlab.setAttribute('x',zx);zlab.setAttribute('y',H-padB+20);zlab.setAttribute('text-anchor','middle');
+      zlab.setAttribute('fill','var(--muted)');zlab.setAttribute('font-size','11');
+      zlab.textContent = SPEC.baseline_label||'0'; svg.appendChild(zlab);
+    }
+    rows.forEach((r,i)=>{
+      const y=padT+i*rowH, h=rowH*0.52;
+      const g=document.createElementNS(NS,'g'); g.dataset.i=i;
+      const lab=document.createElementNS(NS,'text');
+      lab.setAttribute('x',padL-16);lab.setAttribute('y',y+h*0.5+5);lab.setAttribute('text-anchor','end');
+      lab.setAttribute('fill','var(--ink)');lab.setAttribute('font-size','14');lab.setAttribute('font-weight','500');
+      lab.textContent=r.label; lab.id='lab'+i; g.appendChild(lab);
+      const bar=document.createElementNS(NS,'rect');
+      bar.setAttribute('y',y);bar.setAttribute('height',h);bar.setAttribute('rx',3);
+      bar.setAttribute('fill',colorFor(r)); bar.id='bar'+i; g.appendChild(bar);
+      const v=document.createElementNS(NS,'text');
+      v.setAttribute('y',y+h*0.5+5);v.setAttribute('font-size','13');v.setAttribute('class','val');
+      v.setAttribute('fill',colorFor(r)); v.id='val'+i; g.appendChild(v);
+      svg.appendChild(g);
+    });
+    root.appendChild(svg);
+  }
+  function drawRow(i, lt){
+    const r=rows[i], y=padT+i*rowH, h=rowH*0.52;
+    const cur=r.value*lt, x=xOf(cur), x0=xOf(0);
+    const bar=document.getElementById('bar'+i);
+    bar.setAttribute('x',Math.min(x0,x)); bar.setAttribute('width',Math.max(1,Math.abs(x-x0)));
+    const v=document.getElementById('val'+i);
+    v.textContent = fmtU(cur);
+    const tw = RAIL.textW(v.textContent, 13);
+    const pos = RAIL.placeValueLabel(x, x0, {textW:tw, pad:8});
+    v.setAttribute('x', pos.x);
+    v.setAttribute('text-anchor', pos.anchor);
+    // RAIL anchor:'end' means the label sits INSIDE the (negative) bar near zero;
+    // a coloured label on its own coloured fill is unreadable, so switch to bg ink.
+    v.setAttribute('fill', pos.anchor==='end' ? 'var(--bg)' : colorFor(r));
+  }
+  function render(t){
+    let ci=0;
+    rows.forEach((r,i)=>{ if(i===accentIdx) return;
+      const start=0.03 + ci*0.07; ci++;
+      drawRow(i, Ease.outCubic(sub(t,start,0.18)));
+    });
+    if(accentIdx>=0) drawRow(accentIdx, Ease.outQuint(sub(t,0.40,0.42)));
+    const d = Ease.inOutCubic(sub(t,0.46,0.30));
+    rows.forEach((r,i)=>{ if(i===accentIdx) return;
+      document.getElementById('bar'+i).setAttribute('opacity',1-0.62*d);
+      document.getElementById('lab'+i).setAttribute('opacity',1-0.50*d);
+      document.getElementById('val'+i).setAttribute('opacity',1-0.55*d);
+    });
+  }
+  return {build,render};
+})();
+
+/* =====================================================================
+   COLUMN — vertical bars grow from baseline.
+   ===================================================================== */
+const COL = (function(){
+  const W=860, padR=24, padT=30, padB=46;
+  const rows=SPEC.rows||[], n=rows.length, H=360;
+  const padL = Math.max(46, RAIL.INSET+8);
+  const innerW=W-padL-padR, y0=H-padB;
+  const _vals=rows.map(r=>+r.value);
+  const DHI=Math.max(0,..._vals)*1.10 || 1;
+  const gw=innerW/Math.max(1,n), bw=Math.min(gw*0.60, 84);
+  const accentIdx=rows.findIndex(r=>isAccent(r.label, r.role));
+  function build(){
+    root.innerHTML='';
+    const svg=document.createElementNS(NS,'svg'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    const ax=document.createElementNS(NS,'line');
+    ax.setAttribute('x1',padL-6);ax.setAttribute('x2',W-padR);ax.setAttribute('y1',y0);ax.setAttribute('y2',y0);
+    ax.setAttribute('stroke','var(--grid)');ax.setAttribute('stroke-width','1.5'); svg.appendChild(ax);
+    rows.forEach((r,i)=>{
+      const cx=padL+gw*i+gw/2, bx=cx-bw/2;
+      const g=document.createElementNS(NS,'g'); g.dataset.i=i;
+      const bar=document.createElementNS(NS,'rect');
+      bar.setAttribute('x',bx);bar.setAttribute('width',bw);bar.setAttribute('rx',3);
+      bar.setAttribute('fill',colorFor(r)); bar.id='cbar'+i; g.appendChild(bar);
+      const v=document.createElementNS(NS,'text');
+      v.setAttribute('x',cx);v.setAttribute('text-anchor','middle');v.setAttribute('font-size','14');
+      v.setAttribute('class','val');v.setAttribute('fill',colorFor(r)); v.id='cval'+i; g.appendChild(v);
+      const lab=document.createElementNS(NS,'text');
+      lab.setAttribute('x',cx);lab.setAttribute('y',y0+22);lab.setAttribute('text-anchor','middle');
+      lab.setAttribute('fill','var(--ink)');lab.setAttribute('font-size','13');lab.setAttribute('font-weight','500');
+      lab.textContent=r.label; lab.id='clab'+i; g.appendChild(lab);
+      svg.appendChild(g);
+    });
+    root.appendChild(svg);
+  }
+  function drawCol(i,lt){
+    const r=rows[i], cx=padL+gw*i+gw/2, cur=r.value*lt;
+    const h=Math.max(0,(cur/DHI))*(y0-padT);
+    const bar=document.getElementById('cbar'+i);
+    bar.setAttribute('y',y0-h); bar.setAttribute('height',h);
+    const v=document.getElementById('cval'+i);
+    v.setAttribute('y', y0-h-7); v.textContent=fmtU(cur);
+  }
+  function render(t){
+    let ci=0;
+    rows.forEach((r,i)=>{ if(i===accentIdx) return;
+      const start=0.03+ci*0.07; ci++;
+      drawCol(i, Ease.outCubic(sub(t,start,0.20)));
+    });
+    if(accentIdx>=0) drawCol(accentIdx, Ease.outQuint(sub(t,0.42,0.42)));
+    const d=Ease.inOutCubic(sub(t,0.48,0.30));
+    rows.forEach((r,i)=>{ if(i===accentIdx) return;
+      document.getElementById('cbar'+i).setAttribute('opacity',1-0.60*d);
+      document.getElementById('cval'+i).setAttribute('opacity',1-0.55*d);
+      document.getElementById('clab'+i).setAttribute('opacity',1-0.45*d);
+    });
+  }
+  return {build,render};
+})();
+
+/* =====================================================================
+   LOLLIPOP — ranking; stem draws + dot pops. Accent row accented.
+   ===================================================================== */
+const LOLLI = (function(){
+  const rows=SPEC.rows||[], n=rows.length;
+  const W=860, padR=70, padT=24, rowH=46, padB=20;
+  const padL=Math.max(120, RAIL.reserveGutter(rows.map(r=>r.label),14,16));
+  const H=padT+padB+Math.max(1,n)*rowH, innerW=W-padL-padR;
+  const DHI=Math.max(...rows.map(r=>+r.value), 0)*1.08 || 1;
+  const X=v=>padL+(Math.max(0,v)/DHI)*innerW;
+  const accentIdx=rows.findIndex(r=>isAccent(r.label, r.role));
+  function build(){
+    root.innerHTML='';
+    const svg=document.createElementNS(NS,'svg'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    const ax=document.createElementNS(NS,'line');
+    ax.setAttribute('x1',padL);ax.setAttribute('x2',padL);ax.setAttribute('y1',padT-4);ax.setAttribute('y2',H-padB+4);
+    ax.setAttribute('stroke','var(--grid)');ax.setAttribute('stroke-width','1.5'); svg.appendChild(ax);
+    rows.forEach((r,i)=>{
+      const y=padT+i*rowH+rowH/2, col=colorFor(r), proto=i===accentIdx;
+      const lab=document.createElementNS(NS,'text');
+      lab.setAttribute('x',padL-16);lab.setAttribute('y',y+5);lab.setAttribute('text-anchor','end');
+      lab.setAttribute('fill',proto?'var(--ink)':'var(--muted)');lab.setAttribute('font-size','14');
+      lab.setAttribute('font-weight',proto?600:500);lab.textContent=r.label; lab.id='llab'+i; svg.appendChild(lab);
+      const stem=document.createElementNS(NS,'line');
+      stem.setAttribute('x1',padL);stem.setAttribute('y1',y);stem.setAttribute('x2',padL);stem.setAttribute('y2',y);
+      stem.setAttribute('stroke',proto?col:'var(--grid)');stem.setAttribute('stroke-width',proto?2.4:2);
+      stem.id='lstem'+i; svg.appendChild(stem);
+      const dot=document.createElementNS(NS,'circle');
+      dot.setAttribute('cx',padL);dot.setAttribute('cy',y);dot.setAttribute('r',0);dot.setAttribute('fill',col);
+      dot.id='ldot'+i; svg.appendChild(dot);
+      const v=document.createElementNS(NS,'text');
+      v.setAttribute('y',y+5);v.setAttribute('font-size','13');v.setAttribute('class','val');v.setAttribute('fill',col);
+      v.id='lval'+i; svg.appendChild(v);
+    });
+    root.appendChild(svg);
+  }
+  function drawRow(i,lt){
+    const r=rows[i], y=padT+i*rowH+rowH/2, x=X(r.value*lt), proto=i===accentIdx;
+    document.getElementById('lstem'+i).setAttribute('x2',x);
+    const dot=document.getElementById('ldot'+i); dot.setAttribute('cx',x); dot.setAttribute('r',(proto?7:5.5)*Math.min(1,lt*1.3));
+    const v=document.getElementById('lval'+i); v.setAttribute('x',x+10); v.textContent=fmtU(r.value*lt);
+  }
+  function render(t){
+    let ci=0;
+    rows.forEach((r,i)=>{ if(i===accentIdx) return;
+      const start=0.03+ci*0.06; ci++; drawRow(i,Ease.outCubic(sub(t,start,0.30))); });
+    if(accentIdx>=0) drawRow(accentIdx,Ease.outBack(sub(t,0.45,0.40)));
+    const d=Ease.inOutCubic(sub(t,0.5,0.3));
+    rows.forEach((r,i)=>{ if(i===accentIdx) return;
+      ['lstem','ldot','lval'].forEach(p=>document.getElementById(p+i).setAttribute('opacity',1-0.5*d)); });
+  }
+  return {build,render};
+})();
+
+/* =====================================================================
+   LINE / AREA — single series over an ordered x. Draw-on / wipe reveal.
+   Spec: series:[{label, points:[[x,y],...]}]. Uses first series.
+   ===================================================================== */
+const LINE = (function(){
+  const isArea = (CHART==='area');
+  const s = (SPEC.series && SPEC.series[0]) ? SPEC.series[0] : {label:'', points:[]};
+  const pts = (s.points||[]).slice().sort((a,b)=>a[0]-b[0]);
+  const xs=pts.map(p=>+p[0]), ys=pts.map(p=>+p[1]), n=pts.length;
+  const endTxt = fmtU(ys.length?ys[n-1]:0);
+  const endLbl = (s.label? s.label+'  ':'') + endTxt;   // direct end-label = series + value
+  const W=860, padL=Math.max(40,RAIL.INSET+24), padT=30, padB=52;
+  const padR=Math.max(64, Math.ceil(RAIL.textW(endLbl,15)+14+RAIL.INSET));
+  const H=360, innerW=W-padL-padR, baseY=H-padB;
+  const xlo=Math.min(...xs), xhi=Math.max(...xs), xr=(xhi-xlo)||1;
+  const ylo=Math.min(isArea?0:Math.min(...ys),...ys), yhi=Math.max(...ys), yr=(yhi-ylo)||1;
+  const X=v=>padL+((v-xlo)/xr)*innerW, Y=v=>baseY-((v-ylo)/yr)*(baseY-padT);
+  let pathEl, fillEl, clipRect, L, dotEl;
+  function build(){
+    root.innerHTML='';
+    const svg=document.createElementNS(NS,'svg'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    const uid='ln'+Math.random().toString(36).slice(2,7);
+    if(isArea){
+      const defs=document.createElementNS(NS,'defs');
+      const grad=document.createElementNS(NS,'linearGradient');
+      grad.id=uid+'g';grad.setAttribute('x1','0');grad.setAttribute('y1','0');grad.setAttribute('x2','0');grad.setAttribute('y2','1');
+      [['0','0.42'],['1','0.03']].forEach(([off,op])=>{const st=document.createElementNS(NS,'stop');
+        st.setAttribute('offset',off);st.setAttribute('stop-color','var(--amber)');st.setAttribute('stop-opacity',op);grad.appendChild(st);});
+      const clip=document.createElementNS(NS,'clipPath'); clip.id=uid+'c';
+      clipRect=document.createElementNS(NS,'rect');
+      clipRect.setAttribute('x',padL);clipRect.setAttribute('y','0');clipRect.setAttribute('width','0');clipRect.setAttribute('height',H);
+      clip.appendChild(clipRect); defs.appendChild(grad); defs.appendChild(clip); svg.appendChild(defs);
+      svg.dataset.uid=uid;
+    }
+    const ax=document.createElementNS(NS,'line');
+    ax.setAttribute('x1',padL);ax.setAttribute('x2',W-padR);ax.setAttribute('y1',baseY);ax.setAttribute('y2',baseY);
+    ax.setAttribute('stroke','var(--grid)');ax.setAttribute('stroke-width','1.5'); svg.appendChild(ax);
+    // axis label (x_label) — sits below the axis, inside the bottom inset
+    if(SPEC.x_label){ const t=document.createElementNS(NS,'text');
+      t.setAttribute('x',(padL+W-padR)/2);t.setAttribute('y',baseY+26);t.setAttribute('text-anchor','middle');
+      t.setAttribute('fill','var(--muted)');t.setAttribute('font-size','12'); t.textContent=SPEC.x_label; svg.appendChild(t); }
+    const dd=pts.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join(' ');
+    if(isArea){
+      fillEl=document.createElementNS(NS,'path');
+      fillEl.setAttribute('d',dd+` L${X(xs[n-1]).toFixed(1)} ${baseY} L${X(xs[0]).toFixed(1)} ${baseY} Z`);
+      fillEl.setAttribute('fill',`url(#${uid}g)`);fillEl.setAttribute('clip-path',`url(#${uid}c)`); svg.appendChild(fillEl);
+    }
+    pathEl=document.createElementNS(NS,'path');
+    pathEl.setAttribute('d',dd);pathEl.setAttribute('fill','none');pathEl.setAttribute('stroke','var(--amber)');
+    pathEl.setAttribute('stroke-width','2.6');pathEl.setAttribute('stroke-linejoin','round');pathEl.setAttribute('stroke-linecap','round');
+    if(isArea) pathEl.setAttribute('clip-path',`url(#${uid}c)`);
+    svg.appendChild(pathEl);
+    L = pathEl.getTotalLength ? pathEl.getTotalLength() : innerW;
+    if(!isArea) pathEl.setAttribute('stroke-dasharray',L);
+    const lx=X(xs[n-1]), ly=Y(ys[n-1]);
+    dotEl=document.createElementNS(NS,'circle');
+    dotEl.setAttribute('cx',lx);dotEl.setAttribute('cy',ly);dotEl.setAttribute('r',4);dotEl.setAttribute('fill','var(--amber)');
+    svg.appendChild(dotEl);
+    const vl=document.createElementNS(NS,'text');
+    const lyc=Math.max(padT+RAIL.INSET, Math.min(H-padB-RAIL.INSET, ly+5));
+    vl.setAttribute('x',lx+10);vl.setAttribute('y',lyc);vl.setAttribute('fill','var(--amber)');
+    vl.setAttribute('font-size','15');vl.setAttribute('class','val');vl.setAttribute('font-weight','600');
+    vl.textContent = endLbl; vl.id='lend'; svg.appendChild(vl);
+    root.appendChild(svg);
+  }
+  function render(t){
+    const dr=Ease.outCubic(sub(t,0,0.82));
+    if(isArea){ if(clipRect) clipRect.setAttribute('width',innerW*dr); }
+    else { pathEl.setAttribute('stroke-dashoffset',L*(1-dr)); }
+    const o=Ease.outCubic(sub(t,0.78,0.22));
+    dotEl.setAttribute('opacity',o); const e=document.getElementById('lend'); if(e)e.setAttribute('opacity',o);
+  }
+  return {build,render};
+})();
+
+/* =====================================================================
+   MULTILINE — 2-4 series, draw-on, DIRECT de-collided end-labels.
+   Spec: series:[{label, points:[[x,y],...], role?}].
+   ===================================================================== */
+const MULTI = (function(){
+  const S=(SPEC.series||[]).map(s=>({label:s.label, role:s.role,
+    points:(s.points||[]).slice().sort((a,b)=>a[0]-b[0])}));
+  const lblFs=15, LINEH=22;   // de-collision line-height (real Barlow @15px renders ~20px tall)
+  const W=860, padL=Math.max(40,RAIL.INSET+24), padT=30, padB=52;
+  const padR=Math.max(80, Math.ceil(Math.max(0,...S.map(s=>RAIL.textW(s.label,lblFs)))+16+RAIL.INSET));
+  const H=360, innerW=W-padL-padR, baseY=H-padB;
+  const allX=S.flatMap(s=>s.points.map(p=>+p[0]));
+  const allY=S.flatMap(s=>s.points.map(p=>+p[1]));
+  const xlo=Math.min(...allX), xhi=Math.max(...allX), xr=(xhi-xlo)||1;
+  const ylo=Math.min(...allY), yhi=Math.max(...allY), yr=(yhi-ylo)||1;
+  const X=v=>padL+((v-xlo)/xr)*innerW, Y=v=>baseY-((v-ylo)/yr)*(baseY-padT);
+  const accentIdx=S.findIndex(s=>isAccent(s.label, s.role));
+  const paths=[];
+  function endY(s){ const p=s.points; return Y(p[p.length-1][1]); }
+  function labelYs(){
+    // clamp the top floor FIRST so the de-collision sees real positions, then
+    // de-collide downward (so a label parked at the floor can't be re-buried).
+    const top=padT+RAIL.INSET, bot=H-padB-RAIL.INSET;
+    const boxes=S.map((s,si)=>({si,y:Math.max(top, Math.min(bot, endY(s))),h:LINEH}));
+    RAIL.noOverlap(boxes,LINEH);
+    const out=[]; boxes.forEach(b=>{ out[b.si]=Math.min(bot, b.y); });
+    return out;
+  }
+  function build(){
+    root.innerHTML='';
+    const svg=document.createElementNS(NS,'svg'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    const ax=document.createElementNS(NS,'line');
+    ax.setAttribute('x1',padL);ax.setAttribute('x2',W-padR);ax.setAttribute('y1',baseY);ax.setAttribute('y2',baseY);
+    ax.setAttribute('stroke','var(--grid)');ax.setAttribute('stroke-width','1.5'); svg.appendChild(ax);
+    if(SPEC.x_label){ const t=document.createElementNS(NS,'text');
+      t.setAttribute('x',(padL+W-padR)/2);t.setAttribute('y',baseY+26);t.setAttribute('text-anchor','middle');
+      t.setAttribute('fill','var(--muted)');t.setAttribute('font-size','12'); t.textContent=SPEC.x_label; svg.appendChild(t); }
+    paths.length=0; const lys=labelYs();
+    S.forEach((s,si)=>{
+      const proto=si===accentIdx, col= proto ? 'var(--amber)' : 'var(--muted)';
+      const dd=s.points.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join(' ');
+      const pa=document.createElementNS(NS,'path');
+      pa.setAttribute('d',dd);pa.setAttribute('fill','none');pa.setAttribute('stroke',col);
+      pa.setAttribute('stroke-width', proto?2.8:2);pa.setAttribute('stroke-linejoin','round');pa.setAttribute('stroke-linecap','round');
+      svg.appendChild(pa);
+      const L = pa.getTotalLength ? pa.getTotalLength() : innerW; pa.setAttribute('stroke-dasharray',L);
+      const lp=s.points[s.points.length-1];
+      const lx=X(lp[0]);
+      // leader if the label was nudged off its line endpoint
+      if(Math.abs(lys[si]-endY(s))>2){
+        const ld=document.createElementNS(NS,'path');
+        ld.setAttribute('d',`M${lx} ${endY(s).toFixed(1)} L${(lx+8).toFixed(1)} ${lys[si].toFixed(1)}`);
+        ld.setAttribute('fill','none');ld.setAttribute('stroke',col);ld.setAttribute('stroke-width','1');ld.setAttribute('opacity','.5');
+        ld.id='mld'+si; svg.appendChild(ld);
+      }
+      const lab=document.createElementNS(NS,'text');
+      lab.setAttribute('x',lx+10);lab.setAttribute('y',lys[si]+5);lab.setAttribute('fill',col);
+      lab.setAttribute('font-size', proto?15:13);lab.setAttribute('font-weight', proto?600:500);
+      lab.textContent=s.label; lab.id='mlab'+si; svg.appendChild(lab);
+      paths.push({pa,L});
+    });
+    root.appendChild(svg);
+  }
+  function render(t){
+    S.forEach((s,si)=>{
+      const proto=si===accentIdx;
+      const start = proto ? 0.30 : 0.04 + si*0.05;
+      const dur   = proto ? 0.55 : 0.5;
+      const dr=Ease.outCubic(sub(t,start,dur));
+      paths[si].pa.setAttribute('stroke-dashoffset',paths[si].L*(1-dr));
+      const o=Ease.outCubic(sub(t,start+dur*0.8,0.2));
+      document.getElementById('mlab'+si).setAttribute('opacity',o);
+      const ld=document.getElementById('mld'+si); if(ld)ld.setAttribute('opacity',0.5*o);
+    });
+  }
+  return {build,render};
+})();
+
+/* =====================================================================
+   STACKED — parts of a whole across categories (pie replacement).
+   Spec: categories:[...], series:[{label, values:[...], role?}].
+   data[category][series]; one accent series highlighted; direct de-collided labels.
+   ===================================================================== */
+const STACK = (function(){
+  const cats=SPEC.categories||[];
+  const series=(SPEC.series||[]);
+  const m=cats.length, k=series.length;
+  // build D[ci][si]
+  const D=[]; for(let ci=0;ci<m;ci++){ D.push(series.map(s=>+(s.values&&s.values[ci]||0))); }
+  const segFs=14;
+  const W=860, padL=Math.max(70,RAIL.INSET+8), padT=24, padB=44;
+  const padR=Math.max(120, Math.ceil(Math.max(0,...series.map(s=>RAIL.textW(s.label,segFs)))+24+RAIL.INSET));
+  const H=360, innerH=H-padT-padB, innerW=W-padL-padR;
+  const gw=innerW/Math.max(1,m), bw=Math.min(gw*0.5,96);
+  const totals=D.map(row=>row.reduce((a,b)=>a+b,0));
+  const protoSeg=series.findIndex(s=>isAccent(s.label, s.role));
+  const segColor=si=> si===protoSeg ? 'var(--amber)' : 'var(--muted)';
+  const cells=[];
+  function geom(){
+    cells.length=0;
+    D.forEach((row,ci)=>{
+      const tot=totals[ci]||1;
+      const x=padL+gw*ci+(gw-bw)/2; let accFrac=0;
+      row.forEach((v,si)=>{
+        const frac=v/tot;
+        const yTop=padT+innerH*accFrac, h=innerH*frac;
+        cells.push({ci,si,x,yTop,h,frac:v/(totals[ci]||1)});
+        accFrac+=frac;
+      });
+    });
+  }
+  function build(){
+    root.innerHTML=''; geom();
+    const svg=document.createElementNS(NS,'svg'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    cells.forEach((c,idx)=>{
+      const r=document.createElementNS(NS,'rect');
+      r.setAttribute('x',c.x);r.setAttribute('width',bw);
+      r.setAttribute('fill',segColor(c.si));
+      r.setAttribute('opacity', c.si===protoSeg?1:0.55);
+      r.id='seg'+idx; svg.appendChild(r);
+    });
+    cats.forEach((cat,ci)=>{
+      const cx=padL+gw*ci+gw/2;
+      const t=document.createElementNS(NS,'text');
+      t.setAttribute('x',cx);t.setAttribute('y',H-padB+22);t.setAttribute('text-anchor','middle');
+      t.setAttribute('fill','var(--ink)');t.setAttribute('font-size','13');t.setAttribute('font-weight','500');
+      t.textContent=cat; svg.appendChild(t);
+    });
+    const lastX=padL+gw*(m-1)+(gw-bw)/2, labX=lastX+bw+14;
+    const boxes=series.map((s,si)=>{ const c=cells.find(c=>c.ci===m-1&&c.si===si)||{yTop:padT,h:0};
+      return {si, y:c.yTop+c.h/2, h:18, segMidY:c.yTop+c.h/2, segH:c.h, name:s.label}; });
+    RAIL.noOverlap(boxes,18);
+    boxes.forEach(b=>{ b.y=Math.max(padT+RAIL.INSET, Math.min(H-padB-RAIL.INSET, b.y)); });
+    boxes.forEach(b=>{
+      const off = Math.abs(b.y-b.segMidY)>2 || RAIL.externalize(b.segH, b.name, segFs);
+      if(off){
+        const ld=document.createElementNS(NS,'path');
+        ld.setAttribute('d',`M${lastX+bw} ${b.segMidY} L${labX-6} ${b.y}`);
+        ld.setAttribute('fill','none');ld.setAttribute('stroke',segColor(b.si));
+        ld.setAttribute('stroke-width','1');ld.setAttribute('opacity','.5');
+        ld.id='sld'+b.si; svg.appendChild(ld);
+      }
+      const lab=document.createElementNS(NS,'text');
+      lab.setAttribute('x',labX);lab.setAttribute('y',b.y+4);
+      lab.setAttribute('fill',segColor(b.si));
+      lab.setAttribute('font-size', b.si===protoSeg?14:12);
+      lab.setAttribute('font-weight', b.si===protoSeg?600:500);
+      let txt=b.name;
+      if(b.si===protoSeg){ const c=cells.find(c=>c.ci===m-1&&c.si===b.si);
+        if(c) txt=b.name+'  '+Math.round(c.frac*100)+'%'; }
+      lab.textContent=txt; lab.id='sl'+b.si; svg.appendChild(lab);
+    });
+    root.appendChild(svg);
+  }
+  function render(t){
+    cells.forEach((c,idx)=>{
+      const start=0.04+c.ci*0.10;
+      const lt=Ease.outCubic(sub(t,start,0.40));
+      const r=document.getElementById('seg'+idx);
+      r.setAttribute('y',c.yTop); r.setAttribute('height',Math.max(0,c.h*lt));
+    });
+    const o=Ease.outCubic(sub(t,0.7,0.3));
+    series.forEach((s,si)=>{ const el=document.getElementById('sl'+si); if(el)el.setAttribute('opacity',o);
+      const ld=document.getElementById('sld'+si); if(ld)ld.setAttribute('opacity',0.5*o); });
+  }
+  return {build,render};
+})();
+
+/* =====================================================================
+   SCATTER — points pop/scale in; accent point amber + labelled.
+   Spec: points:[{label,x,y,size?}].
+   ===================================================================== */
+const SCAT = (function(){
+  const P=(SPEC.points||[]);
+  const W=860, padL=56, padR=40, padB=52;
+  const padT = SPEC.y_label ? 44 : 28;   // headroom for the horizontal y-axis caption
+  const H=360, innerW=W-padL-padR, innerH=H-padT-padB;
+  const xs=P.map(p=>+p.x), ys=P.map(p=>+p.y);
+  const xlo=Math.min(...xs), xhi=Math.max(...xs), xr=(xhi-xlo)||1;
+  const ylo=Math.min(...ys), yhi=Math.max(...ys), yr=(yhi-ylo)||1;
+  // pad domains 8% so points don't sit on the axis
+  const xpad=xr*0.08, ypad=yr*0.08;
+  const X=v=>padL+((v-(xlo-xpad))/((xr+2*xpad)||1))*innerW;
+  const Y=v=>(H-padB)-((v-(ylo-ypad))/((yr+2*ypad)||1))*innerH;
+  const hasSize=P.some(p=>typeof p.size==='number');
+  const smax=Math.max(1,...P.map(p=>+(p.size||0)));
+  function rad(p){ return hasSize ? (7+18*Math.sqrt((+(p.size||0))/smax)) : 6; }
+  const accentIdx=P.findIndex(p=>isAccent(p.label, p.role));
+  function build(){
+    root.innerHTML='';
+    const svg=document.createElementNS(NS,'svg'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    [['x',padL,H-padB,W-padR,H-padB],['y',padL,padT,padL,H-padB]].forEach(([,x1,y1,x2,y2])=>{
+      const ax=document.createElementNS(NS,'line');
+      ax.setAttribute('x1',x1);ax.setAttribute('y1',y1);ax.setAttribute('x2',x2);ax.setAttribute('y2',y2);
+      ax.setAttribute('stroke','var(--grid)');ax.setAttribute('stroke-width','1.5'); svg.appendChild(ax);
+    });
+    if(SPEC.x_label){ const t=document.createElementNS(NS,'text');
+      t.setAttribute('x',(padL+W-padR)/2);t.setAttribute('y',(H-padB)+30);t.setAttribute('text-anchor','middle');
+      t.setAttribute('fill','var(--muted)');t.setAttribute('font-size','12'); t.textContent=SPEC.x_label; svg.appendChild(t); }
+    if(SPEC.y_label){ const t=document.createElementNS(NS,'text');   // horizontal caption above the y-axis top
+      t.setAttribute('x',padL);t.setAttribute('y',padT-16);t.setAttribute('text-anchor','start');
+      t.setAttribute('fill','var(--muted)');t.setAttribute('font-size','12'); t.textContent=SPEC.y_label; svg.appendChild(t); }
+    P.forEach((p,i)=>{
+      const proto=i===accentIdx, col=proto?'var(--amber)':'var(--muted)';
+      const c=document.createElementNS(NS,'circle');
+      c.setAttribute('cx',X(p.x));c.setAttribute('cy',Y(p.y));
+      c.setAttribute('fill',col);c.setAttribute('fill-opacity',proto?0.95:0.5);
+      if(proto){c.setAttribute('stroke','var(--amber)');c.setAttribute('stroke-width','1.4');}
+      c.id='pt'+i; svg.appendChild(c);
+      if(p.label){
+        const lab=document.createElementNS(NS,'text');
+        const lx=Math.min(W-RAIL.INSET-RAIL.textW(p.label,proto?15:12), X(p.x)+rad(p)+7);
+        lab.setAttribute('x',lx);lab.setAttribute('y',Y(p.y)+5);
+        lab.setAttribute('fill',proto?'var(--amber)':'var(--muted)');
+        lab.setAttribute('font-size',proto?15:12);lab.setAttribute('font-weight',proto?600:500);
+        lab.setAttribute('opacity',proto?1:0.85);
+        lab.textContent=p.label; lab.id='ptlab'+i; svg.appendChild(lab);
+      }
+    });
+    root.appendChild(svg);
+  }
+  function render(t){
+    P.forEach((p,i)=>{
+      const proto=i===accentIdx;
+      const start=proto?0.45:0.03+i*0.045;
+      const lt=Ease.outBack(sub(t,start,proto?0.5:0.3));
+      const c=document.getElementById('pt'+i);
+      c.setAttribute('r',Math.max(0,rad(p)*lt));
+      const oc=Ease.outCubic(sub(t,start,0.2));
+      c.setAttribute('opacity',oc);
+      const ll=document.getElementById('ptlab'+i);
+      if(ll) ll.setAttribute('opacity', (proto?Ease.outCubic(sub(t,0.7,0.3)):0.85*oc));
+    });
+  }
+  return {build,render};
+})();
+
+/* =====================================================================
+   DUMBBELL / SLOPE — before(LEFT) -> after(RIGHT), y=value. Direction-locked.
+   Spec: start_label, end_label, rows:[{label, start, end, role?}].
+   ===================================================================== */
+const DUMB = (function(){
+  const rows=SPEC.rows||[];
+  const W=860, padT=40, padB=46;
+  const padL=Math.max(120, RAIL.reserveGutter(rows.map(r=>r.label),14,16));
+  const deltaW=Math.max(0,...rows.map(r=>RAIL.textW('↓ -99%',13)));
+  const padR=Math.max(96, Math.ceil(deltaW+18+RAIL.INSET));
+  const H=360, innerW=W-padL-padR, innerH=H-padT-padB;
+  const xL=padL, xR=W-padR;
+  const allV=rows.flatMap(r=>[+r.start,+r.end]);
+  const vlo=Math.min(...allV), vhi=Math.max(...allV), vr=(vhi-vlo)||1;
+  const Y=v=>padT+innerH-((v-vlo)/vr)*innerH;
+  const accentIdx=rows.findIndex(r=>isAccent(r.label, r.role));
+  function rowColor(r,i){ if(i===accentIdx) return 'var(--amber)';
+    return r.end<r.start ? 'var(--red)' : (r.end>r.start ? 'var(--teal)' : 'var(--muted)'); }
+  function build(){
+    root.innerHTML='';
+    const svg=document.createElementNS(NS,'svg'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    [[xL,SPEC.start_label||'before'],[xR,SPEC.end_label||'after']].forEach(([x,lbl])=>{
+      const ln=document.createElementNS(NS,'line');
+      ln.setAttribute('x1',x);ln.setAttribute('x2',x);ln.setAttribute('y1',padT-6);ln.setAttribute('y2',H-padB+4);
+      ln.setAttribute('stroke','var(--grid)');ln.setAttribute('stroke-width','1.5'); svg.appendChild(ln);
+      const t=document.createElementNS(NS,'text');
+      t.setAttribute('x',x);t.setAttribute('y',H-padB+22);t.setAttribute('text-anchor','middle');
+      t.setAttribute('fill','var(--muted)');t.setAttribute('font-size','12'); t.textContent=lbl; svg.appendChild(t);
+    });
+    rows.forEach((r,i)=>{
+      const col=rowColor(r,i), proto=i===accentIdx;
+      const dir=RAIL.orderPair(+r.start, +r.end, xL, xR);
+      const yB=Y(r.start), yA=Y(r.end);
+      const seg=document.createElementNS(NS,'line');
+      seg.setAttribute('x1',dir.xStart);seg.setAttribute('y1',yB);seg.setAttribute('x2',dir.xStart);seg.setAttribute('y2',yB);
+      seg.setAttribute('stroke',col);seg.setAttribute('stroke-width',proto?3:2);seg.setAttribute('opacity',proto?1:0.55);
+      seg.dataset.x1=dir.xStart;seg.dataset.y1=yB;seg.dataset.x2=dir.xEnd;seg.dataset.y2=yA;
+      seg.id='sg'+i; svg.appendChild(seg);
+      const d1=document.createElementNS(NS,'circle');
+      d1.setAttribute('cx',dir.xStart);d1.setAttribute('cy',yB);d1.setAttribute('r',proto?6:4.5);
+      d1.setAttribute('fill','var(--muted)');d1.setAttribute('opacity',proto?1:0.55); d1.id='sa'+i; svg.appendChild(d1);
+      const d2=document.createElementNS(NS,'circle');
+      d2.setAttribute('cx',dir.xEnd);d2.setAttribute('cy',yA);
+      d2.setAttribute('fill',col);d2.setAttribute('opacity',proto?1:0.55);d2.setAttribute('r',0); d2.id='sb'+i; svg.appendChild(d2);
+      const lab=document.createElementNS(NS,'text');
+      lab.setAttribute('x',padL-16);lab.setAttribute('y',yB+5);lab.setAttribute('text-anchor','end');
+      lab.setAttribute('fill',proto?'var(--ink)':'var(--muted)');lab.setAttribute('font-size','14');
+      lab.setAttribute('font-weight',proto?600:500); lab.textContent=r.label; lab.id='snm'+i; svg.appendChild(lab);
+      const dl=document.createElementNS(NS,'text');
+      const dly=Math.max(padT+RAIL.INSET, Math.min(H-padB-RAIL.INSET, yA+4));
+      dl.setAttribute('x',dir.xEnd+12);dl.setAttribute('y',dly);dl.setAttribute('text-anchor','start');
+      dl.setAttribute('fill',col);dl.setAttribute('font-size','13');dl.setAttribute('class','val');
+      dl.setAttribute('font-weight',proto?600:500); dl.textContent=dir.deltaLabel; dl.id='sd'+i; svg.appendChild(dl);
+    });
+    root.appendChild(svg);
+  }
+  function drawSlope(i,lt){
+    const seg=document.getElementById('sg'+i);
+    const x1=+seg.dataset.x1,y1=+seg.dataset.y1,x2=+seg.dataset.x2,y2=+seg.dataset.y2;
+    seg.setAttribute('x2',x1+(x2-x1)*lt); seg.setAttribute('y2',y1+(y2-y1)*lt);
+    const proto=i===accentIdx; const d2=document.getElementById('sb'+i);
+    d2.setAttribute('r',(proto?7:5)*Math.min(1,lt*1.2));
+  }
+  function render(t){
+    let ci=0;
+    rows.forEach((r,i)=>{ if(i===accentIdx) return;
+      const start=0.03+ci*0.07; ci++; drawSlope(i,Ease.outCubic(sub(t,start,0.30))); });
+    if(accentIdx>=0) drawSlope(accentIdx,Ease.outCubic(sub(t,0.40,0.45)));
+    const o=Ease.outCubic(sub(t,0.7,0.3));
+    rows.forEach((r,i)=>{ const dl=document.getElementById('sd'+i); if(dl)dl.setAttribute('opacity',(i===accentIdx?1:0.7)*o); });
+    const d=Ease.inOutCubic(sub(t,0.5,0.3));
+    rows.forEach((r,i)=>{ if(i===accentIdx) return;
+      ['sg','sa','sb','snm'].forEach(p=>{const el=document.getElementById(p+i);if(el)el.setAttribute('opacity',(1-0.5*d)*0.9);}); });
+  }
+  return {build,render};
+})();
+
+/* ---- dispatcher: route SPEC.chart to its module (one shared clock/theme/controls) ---- */
+const CHARTS = {
+  kpi:KPI, bar:BAR, diverging:BAR, column:COL, lollipop:LOLLI,
+  line:LINE, area:LINE, multiline:MULTI, stacked:STACK, scatter:SCAT, dumbbell:DUMB
+};
+function chartMod(){ return CHARTS[CHART] || BAR; }
+function buildChart(){ chartMod().build(); }
+function draw(t){ chartMod().render(t); }
+
+let DUR = SPEC.duration||1400, slow=false, speedMul=1;
+const stage = ()=>document.getElementById('stage');
+function play(){
+  killAnims(stage()); buildChart();
+  const dur = DUR * (slow?3:1) / speedMul;
+  tween(stage(), {dur, ease:Ease.linear, onUpdate:draw, onDone:()=>{ window.__d2mReady=true; }});
+}
+function finalState(){ killAnims(stage()); buildChart(); draw(1); window.__d2mReady=true; }
+
+// boot
+if(REDUCE){ finalState(); }
+else if(SEEK!==null){ buildChart(); draw(Math.max(0,Math.min(1,SEEK/DUR))); window.__d2mReady=true; }
+else {
+  buildChart();
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){play();io.disconnect();}});},{threshold:.3});
+    io.observe(stage());
+  } else play();
+}
+// controls
+document.getElementById('replay').onclick=play;
+document.getElementById('stage').onclick=play;
+document.getElementById('freeze').onclick=finalState;
+document.getElementById('slow').onclick=e=>{slow=!slow;e.target.setAttribute('aria-pressed',slow);e.target.textContent=slow?'\u{1F422} Slow ON':'\u{1F422} Slow-mo';play();};
+document.getElementById('speed').oninput=e=>{speedMul=+e.target.value;play();};
+
+// ---- theme: dark/light + 3 colour schemes (CSS vars consumed by the SVG) ----
+const SCHEMES=[['#2bb0a0','#d9933d','#c0392b'],['#6366f1','#0ea5b7','#f43f5e'],['#e8702a','#d9a521','#d6336c']];
+let _scheme=0,_mode='dark';
+try{const q=new URLSearchParams(location.search);_mode=q.get('mode')||localStorage.getItem('d2m-mode')||'dark';_scheme=+(q.get('scheme')||localStorage.getItem('d2m-scheme')||0);}catch(e){}
+if(!(_scheme>=0&&_scheme<3))_scheme=0;
+function applyTheme(){
+  const rs=document.documentElement.style,a=SCHEMES[_scheme];
+  rs.setProperty('--teal',a[0]);rs.setProperty('--amber',a[1]);rs.setProperty('--red',a[2]);
+  document.body.classList.toggle('light',_mode==='light');
+  const mb=document.getElementById('mode');if(mb)mb.textContent=_mode==='light'?'☀':'☾';
+  document.querySelectorAll('.schemeBtn').forEach((b,i)=>{b.style.background='linear-gradient(90deg,'+SCHEMES[i][0]+' 0 33%,'+SCHEMES[i][1]+' 33% 66%,'+SCHEMES[i][2]+' 66%)';b.classList.toggle('on',i===_scheme);});
+}
+applyTheme();
+document.getElementById('mode').onclick=()=>{_mode=_mode==='light'?'dark':'light';try{localStorage.setItem('d2m-mode',_mode);}catch(e){}applyTheme();};
+document.querySelectorAll('.schemeBtn').forEach(b=>b.onclick=()=>{_scheme=+b.dataset.s;try{localStorage.setItem('d2m-scheme',_scheme);}catch(e){}applyTheme();});
+
+// ---- view / copy code ----
+document.getElementById('code').onclick=()=>{const dlg=document.getElementById('codeDlg');dlg.querySelector('pre').textContent='<!doctype html>\n'+document.documentElement.outerHTML;dlg.showModal();};
+document.getElementById('codeClose').onclick=()=>document.getElementById('codeDlg').close();
+document.getElementById('codeCopy').onclick=()=>{const t=document.getElementById('codeDlg').querySelector('pre').textContent;navigator.clipboard&&navigator.clipboard.writeText(t);};
+
+window.__d2mReady = window.__d2mReady||false;
+
+</script>
+</body></html>

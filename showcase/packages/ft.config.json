@@ -1,0 +1,58 @@
+{
+  "id": "ft",
+  "lang": "zh",
+  "title": "FT Visual Vocabulary — Animated",
+  "brand_b": "FT VOCAB",
+  "brand_rest": "visual vocabulary",
+  "eyebrow": "数据可视化 · 按数据关系选图表",
+  "h1_html": "Visual<br>Vocabulary",
+  "lede": "The Financial Times' chart taxonomy, made to move. Decide which data <em>relationship</em> matters most in your story, then pick a chart within that category.",
+  "lede_cn": "金融时报的图表分类法，会动的版本 —— 先确定你的故事里哪种「数据关系」最重要，再在该类别里挑一种图。点击卡片重播。",
+  "keys": ["#c8a02c", "#de5a2a", "#9a4fa0", "#2f5aa0"],
+  "sections": [
+    {
+      "id": "main",
+      "no": "§ 00",
+      "title": "By data relationship",
+      "cn": "按数据关系分类",
+      "desc": "Nine categories — the same ones across the top of the FT poster. This is not a wizard, just a useful starting point. Choose the relationship that carries your story; the chart follows.",
+      "wide": false
+    }
+  ],
+  "cats": {
+    "DEVIATION": "偏差 · 相对参考点的增减",
+    "CORRELATION": "相关 · 变量之间的关系",
+    "RANKING": "排序 · 有序位置最重要",
+    "DISTRIBUTION": "分布 · 数值与出现频率",
+    "CHANGE OVER TIME": "随时间变化 · 趋势",
+    "MAGNITUDE": "量级 · 大小比较",
+    "PART-TO-WHOLE": "部分与整体 · 构成",
+    "SPATIAL": "空间 · 地理位置/模式",
+    "FLOW": "流向 · 状态间的流动量"
+  },
+  "footer_left": "FT VISUAL VOCABULARY (ANIMATED)",
+  "footer_right": "single-file · vanilla svg+js · no deps · after FT/Alan Smith, CC BY-SA 4.0",
+  "stageTint": true,
+  "catColors": {
+    "DEVIATION":"#cda32b","CORRELATION":"#8a6d43","RANKING":"#1198ab","DISTRIBUTION":"#de5a2a","CHANGE OVER TIME":"#479e4f","MAGNITUDE":"#9c4a92","PART-TO-WHOLE":"#2b59a0","SPATIAL":"#9a9a9a","FLOW":"#9ab84a"
+  },
+  "catTints": {
+    "DEVIATION":"#f3edd9","CORRELATION":"#e4dfd4","RANKING":"#c3e2ea","DISTRIBUTION":"#f4ddcf","CHANGE OVER TIME":"#d9e6d1","MAGNITUDE":"#e8dce9","PART-TO-WHOLE":"#cdd9e7","SPATIAL":"#e5e5e5","FLOW":"#dde7cd"
+  },
+  "catNames": {
+    "DEVIATION":"Deviation","CORRELATION":"Correlation","RANKING":"Ranking","DISTRIBUTION":"Distribution","CHANGE OVER TIME":"Change over Time","MAGNITUDE":"Magnitude","PART-TO-WHOLE":"Part-to-whole","SPATIAL":"Spatial","FLOW":"Flow"
+  },
+  "theme": {
+    "fonts": "https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600&family=Inter:wght@400;500;600&display=swap",
+    "css": {
+      "--bg":"#ffffff","--bg2":"#f7f6f2","--surface":"#ffffff","--surface2":"#f8f7f2","--line":"#e4e1d7","--line-bright":"#cfcabb",
+      "--text":"#1c1c1e","--text-dim":"#54545b","--text-faint":"#8c8980",
+      "--font":"'Inter',-apple-system,sans-serif","--display":"'Source Serif 4',Georgia,serif","--r":"2px",
+      "--bg-glow":"transparent","--topbar-bg":"rgba(255,255,255,.9)","--card-border":"#e7e4da","--stage-bg":"#faf9f5","--stage-img":"none"
+    },
+    "css_extra": ".hero h1{font-weight:300} .lede{font-style:italic} .cat{flex-wrap:wrap;align-items:center;gap:8px;margin:48px 0 18px} .cat-rule{order:-1;flex:0 0 100%;height:5px;border-radius:0;max-width:none;background:currentColor;opacity:.9} .cat-label{font-family:var(--display);font-weight:400;font-size:25px;text-transform:none;letter-spacing:0;line-height:1.1} .cat-cn{font-size:12px;color:var(--text-faint)}",
+    "C": {"txt":"#1a1a1a","faint":"#9a978d","axis":"#9a9a9a","grid":"#e3e0d6","surf":"#efece4","line":"#cfcabb","bg":"#ffffff",
+          "teal":"#141414","amber":"#141414","red":"#3a3a3a","cool":"#8c8c8c","tealL":"#8c8c8c","amberL":"#b3b3b3","redL":"#8c8c8c"},
+    "PAL": ["#141414","#8c8c8c","#565656","#b3b3b3","#3a3a3a","#707070"]
+  }
+}
