@@ -1,5 +1,5 @@
 /* ============================================================
-   Pixel2Motion — landing page
+   Data2Motion — landing page
    Black theme. Brand accents from the lykno flame:
    yellow #f4b23c, blue #83a2ff
    ============================================================ */
@@ -188,7 +188,7 @@ input:focus-visible {
   font-weight: 800;
 }
 
-/* the ONLY color on the page: the "2" (the "to") in Pixel2Motion */
+/* the ONLY color on the page: the "2" (the "to") in Data2Motion */
 .grad {
   background: linear-gradient(120deg, var(--yellow) 10%, var(--blue) 90%);
   -webkit-background-clip: text;

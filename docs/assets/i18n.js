@@ -10,42 +10,42 @@
 (function () {
   const DICT = {
     "nav.waitlist":  { en: "Join waitlist",      zh: "加入候补" },
-    "hero.eyebrow":  { en: "Premium commercial site · coming soon", zh: "高品质商业付费版 · 筹备上线" },
+    "hero.eyebrow":  { en: "AI data animation skill · commercial platform coming soon", zh: "AI 数据动效 Skill · 商业平台筹备上线" },
     "hero.lead":     {
-      en: "A higher-quality paid Pixel2Motion experience is being prepared for launch. Join the waitlist for early access to commercial-grade logo and data motion design.",
-      zh: "更高品质的 Pixel2Motion 商业付费版正在筹备上线。加入候补名单，第一时间体验面向商业项目的 Logo 与数据动效服务。"
+      en: "Data2Motion turns JSON data into standalone animated chart HTML. Join the waitlist for the upcoming commercial data and logo motion platform.",
+      zh: "Data2Motion 把 JSON 数据变成可独立发布的动态图表 HTML。加入候补名单，第一时间了解即将上线的数据与 Logo 商业动效平台。"
     },
     "cta.waitlist":  { en: "Join the waitlist",  zh: "加入候补名单" },
     "cta.github":    { en: "View on GitHub",     zh: "在 GitHub 查看" },
 
-    "svc.eyebrow":   { en: "What we animate",     zh: "我们能做什么" },
-    "svc.title":     { en: "Logo and data, in motion.", zh: "让 Logo 与数据动起来。" },
+    "svc.eyebrow":   { en: "What it generates",     zh: "它能生成什么" },
+    "svc.title":     { en: "Data stories, in motion.", zh: "让数据故事动起来。" },
     "svc.sub":       {
-      en: "The paid commercial site is being crafted for teams that need polished, presentation-ready motion from raw brand and data assets.",
-      zh: "商业付费版正在为团队级使用场景打磨：把原始品牌与数据素材，变成可直接用于展示的高完成度动效。"
+      en: "The open skill generates polished animated chart HTML from compact JSON specs. The paid commercial platform is being prepared for teams that need production-grade motion assets.",
+      zh: "开源 skill 可用紧凑 JSON spec 生成高完成度动态图表 HTML。面向团队的商业平台正在筹备，适合需要生产级动效资产的场景。"
     },
-    "svc.logo.title": { en: "Logo animation",     zh: "Logo 动画" },
+    "svc.logo.title": { en: "Animated chart HTML",     zh: "动态图表 HTML" },
     "svc.logo.desc":  {
-      en: "Your mark in motion — reveals, intros, loaders, and loops choreographed to the last frame. Brand moments that feel alive.",
-      zh: "让你的标志动起来——开场、揭幕、加载与循环动画，逐帧精心编排，让品牌瞬间鲜活生动。"
+      en: "Turn KPIs, rankings, trends, and small datasets into replayable chart motion with reduced-motion and frame-seek hooks.",
+      zh: "把 KPI、排名、趋势和小型数据集变成可回放动态图表，并内置 reduced-motion 与逐帧定位能力。"
     },
-    "svc.logo.use":   { en: "Splash screens · brand intros · loading states · social", zh: "启动画面 · 品牌开场 · 加载状态 · 社交媒体" },
-    "svc.data.title": { en: "Data chart animation", zh: "数据图表动画" },
+    "svc.logo.use":   { en: "Reports · launches · decks · dashboards", zh: "报告 · 发布 · 演示 · 仪表盘" },
+    "svc.data.title": { en: "AI data storytelling", zh: "AI 数据叙事" },
     "svc.data.desc":  {
-      en: "Numbers that move — charts and visualizations animated with clarity and rhythm, so the story lands the moment it appears.",
-      zh: "让数字动起来——清晰且富有节奏感的图表与可视化动画，让数据故事在出现的瞬间就被读懂。"
+      en: "A structured workflow for taking JSON specs to standalone data visualization pages without hand-authoring SVG or animation code.",
+      zh: "从 JSON spec 到独立数据可视化页面的结构化工作流，不需要手写 SVG 或动效代码。"
     },
-    "svc.data.use":   { en: "Decks · reports · launches · dashboards", zh: "演示 · 报告 · 发布 · 仪表盘" },
+    "svc.data.use":   { en: "JSON specs · SVG charts · standalone HTML · QA hooks", zh: "JSON spec · SVG 图表 · 独立 HTML · QA hooks" },
 
     "wl.title":       { en: "Join the waitlist",  zh: "加入候补名单" },
     "wl.desc":        {
-      en: "The current site will stay simple while the higher-quality paid commercial site is prepared. Leave your email and we'll reach out at launch.",
-      zh: "当前页面会保持简洁；更高品质的商业付费版正在筹备上线。留下邮箱，上线时第一时间通知你。"
+      en: "The open-source skill is available now. A higher-quality paid commercial site for polished logo and data motion is being prepared; join the waitlist for launch updates.",
+      zh: "开源 skill 现在就可以使用；更高品质的 Logo 与数据商业动效网站正在筹备上线。留下邮箱，上线时第一时间通知你。"
     },
     "wl.label":       { en: "Email for launch updates", zh: "接收上线通知的邮箱" },
     "wl.placeholder": { en: "you@example.com",    zh: "you@example.com" },
     "wl.button":      { en: "Notify me",          zh: "通知我" },
-    "wl.note":        { en: "We'll only use your email to send Pixel2Motion launch updates.", zh: "我们只会用你的邮箱发送 Pixel2Motion 上线通知。" },
+    "wl.note":        { en: "We'll only use your email to send Data2Motion and commercial motion launch updates.", zh: "我们只会用你的邮箱发送 Data2Motion 与商业动效平台上线通知。" },
 
     /* used by waitlist.js */
     "status.invalid": { en: "Please enter a valid email address.", zh: "请输入有效的邮箱地址。" },

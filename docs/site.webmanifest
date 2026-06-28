@@ -1,0 +1,17 @@
+{
+  "name": "Data2Motion",
+  "short_name": "Data2Motion",
+  "description": "AI data animation skill that turns JSON data into standalone animated chart HTML.",
+  "start_url": "/data2motion/",
+  "display": "browser",
+  "background_color": "#050506",
+  "theme_color": "#050506",
+  "icons": [
+    {
+      "src": "assets/flame.svg",
+      "sizes": "96x138",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

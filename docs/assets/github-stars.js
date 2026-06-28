@@ -1,15 +1,13 @@
 /* ============================================================
-   Daily GitHub star count
+   GitHub star count
    ------------------------------------------------------------
    Writes the repo's current star count into any element marked
-   with [data-gh-stars]. The backend refreshes the value from
-   GitHub once per day and serves a cached response.
+   with [data-gh-stars]. Uses the public GitHub API so the page can
+   run on GitHub Pages without a backend.
    ============================================================ */
 
-const POLL_MS = 60 * 60 * 1000; // backend is daily-cached; hourly focus refresh is enough
-const GITHUB_STARS_API_ORIGIN = "https://pixel2motion.com";
-const GITHUB_STARS_SITE_HOSTS = new Set(["pixel2motion.com", "www.pixel2motion.com"]);
-const STARS_ENDPOINT = GITHUB_STARS_SITE_HOSTS.has(window.location.hostname) ? "/api/github-stars" : `${GITHUB_STARS_API_ORIGIN}/api/github-stars`;
+const POLL_MS = 60 * 60 * 1000;
+const STARS_ENDPOINT = "https://api.github.com/repos/nolangz/data2motion";
 
 async function refreshStars() {
   const targets = document.querySelectorAll("[data-gh-stars]");

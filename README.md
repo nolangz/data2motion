@@ -1,10 +1,15 @@
-# Data2Motion - AI Data Animation Skill
+# Data2Motion - AI Data Animation Skill for Animated Charts
+
+[![GitHub stars](https://img.shields.io/github/stars/nolangz/data2motion?style=social)](https://github.com/nolangz/data2motion/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/nolangz/data2motion?style=social)](https://github.com/nolangz/data2motion/forks)
+[![Codex Skill](https://img.shields.io/badge/Codex%20Skill-data%20to%20motion-46b8a5)](SKILL.md)
+[![Standalone HTML](https://img.shields.io/badge/output-standalone%20HTML-d9933d)](examples/kpi_arr.html)
 
 Data -> chart -> motion -> standalone HTML.
 
-[Commercial waitlist](docs/index.html) · [README preview](showcase/index.html) · [Chart motion atlas](showcase/chart-motion-atlas.html) · [Spec format](references/spec.md) · [Skill instructions](SKILL.md) · Reference sibling: [Pixel2Motion](https://github.com/nolangz/pixel2motion)
+[SEO landing page](docs/index.html) · [README preview](showcase/index.html) · [Chart motion atlas](showcase/chart-motion-atlas.html) · [Spec format](references/spec.md) · [Skill instructions](SKILL.md) · Reference sibling: [Pixel2Motion](https://github.com/nolangz/pixel2motion)
 
-This repository ships the Lite engine for Data2Motion: a script-driven Codex and Claude skill for turning small datasets into polished animated chart pages. It takes one JSON spec, chooses from a fixed chart vocabulary, and exports a dependency-free HTML file with the Data2Motion house style, replay controls, reduced-motion support, and deterministic QA hooks.
+Data2Motion is an AI data animation skill for turning JSON data, KPIs, rankings, trends, and small datasets into polished animated chart HTML. This repository ships the Lite engine: a script-driven Codex and Claude skill that takes one compact JSON spec, chooses from a fixed chart vocabulary, and exports a dependency-free HTML file with the Data2Motion house style, replay controls, reduced-motion support, and deterministic QA hooks.
 
 中文：Data2Motion 的 Lite 版本是一个把数据变成动态图表 HTML 的 AI skill。你只需要给出数据和图表类型，脚本负责版式、颜色、动效、控制条和可复现渲染，适合快速把一个数字、趋势、排名、对比或占比做成可上线的 data story。
 
@@ -12,7 +17,7 @@ Recommended review order: the README preview page, the chart motion atlas, the e
 
 ## Data-to-Motion Gallery
 
-Open the local preview page at `showcase/index.html` to browse the launch-style README page, built examples, and visual templates.
+Open the local preview page at `showcase/index.html` to browse the launch-style README page, built examples, and visual templates. Open `docs/index.html` for the SEO landing page intended for GitHub Pages.
 
 | Motion output | What it demonstrates |
 |---|---|
@@ -38,7 +43,7 @@ The result is intentionally constrained:
 - `chart_motion.html`: standalone animated chart page generated from a JSON spec.
 - `spec.json`: the data, chart type, title, takeaway, source, unit, duration, style, and optional scale settings.
 - `showcase/index.html`: README-style launch page for presenting the project.
-- `docs/index.html`: commercial waitlist page for the upcoming paid Pixel2Motion site.
+- `docs/index.html`: SEO landing page and waitlist entry for Data2Motion and the upcoming commercial motion platform.
 - `showcase/chart-motion-atlas.html`: Essential house-style reference.
 - `showcase/packages/ft.html`: FT-style reference template.
 - `references/spec.md`: the contract every input spec follows.
@@ -99,12 +104,23 @@ No runtime JavaScript dependencies are required in the generated chart HTML.
 - `references/spec.md`: accepted JSON schema and chart examples.
 - `examples/`: ready-to-run input specs and generated outputs.
 - `showcase/`: README preview, chart-motion atlas, FT-style template, and publishable assets.
+- `docs/`: GitHub Pages SEO landing page, crawler metadata, and waitlist assets.
+
+## GitHub SEO
+
+Recommended GitHub About settings:
+
+- **Description:** `AI data animation skill that turns JSON data into standalone animated chart HTML for data storytelling, dashboards, reports, and launch visuals.`
+- **Website:** `https://nolangz.github.io/data2motion/`
+- **Topics:** `data-visualization`, `animated-charts`, `data-storytelling`, `dataviz`, `svg-animation`, `html-animation`, `ai-tools`, `generative-ai`, `codex-skill`, `claude-skill`, `charts`, `dashboard`, `reporting`, `storytelling`, `github-pages`, `javascript`, `python`
+
+Search keywords this repository intentionally targets: AI data animation, animated charts, data storytelling, chart motion, data visualization animation, standalone chart HTML, SVG chart animation, Codex skill, Claude skill, and JSON to chart.
 
 ## Publishing Checklist
 
 - Confirm `README.md`, `SKILL.md`, `references/`, `scripts/`, `examples/`, and `showcase/` are committed.
 - Keep caches, local virtual environments, generated temp frames, and dependency directories out of git.
-- Enable GitHub Pages from branch `main`, folder `/docs`, to publish the commercial waitlist page.
+- Enable GitHub Pages from branch `main`, folder `/docs`, to publish the SEO landing page.
 - After creating the GitHub repository, add the remote and push:
 
 ```bash
